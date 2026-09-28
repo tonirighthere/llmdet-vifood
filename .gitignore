@@ -1,0 +1,59 @@
+# ==============================================================================
+# Git Ignore for LLMDet Vietnamese Food Project (SoPSoP)
+# ==============================================================================
+
+# Byte-compiled / optimized files
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+build/
+dist/
+
+# Model Weights and Large Checkpoints (>100MB)
+*.pth
+*.pt
+*.bin
+*.safetensors
+*.onnx
+*.msgpack
+*.h5
+*.ot
+work_dirs/
+checkpoints/
+weights/
+
+# HuggingFace Pretrained Models
+huggingface/
+
+# Large Datasets and Archives
+*.zip
+*.tar
+*.tar.gz
+*.rar
+vietnamese-food-dataset/
+vietnamese_food_dataset_*.zip
+vifood2.zip
+
+# Heavy Raw Image Directories (Annotations in grounding_data/vifood/annotations are preserved)
+grounding_data/vifood/images/
+grounding_data/vifood/cache/
+
+# Log files & Temporary Outputs
+*.log
+demo_output/
+
+# Virtual Environments
+.env
+.venv/
+env/
+venv/
+ENV/
+
+# IDE and System Files
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.swo
+.git_sub_bak

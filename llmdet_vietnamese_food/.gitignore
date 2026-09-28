@@ -1,0 +1,10 @@
+*.DS_Store
+.cache/
+llmdet_env/
+.venv/
+__pycache__/
+*.pyc
+*.safetensors
+*.pth
+*.pt
+*.bin
