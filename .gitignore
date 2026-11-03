@@ -34,6 +34,8 @@ huggingface/
 vietnamese-food-dataset/
 vietnamese_food_dataset_*.zip
 vifood2.zip
+vifood_2999_extracted/
+crops_review/
 
 # Heavy Raw Image Directories (Annotations in grounding_data/vifood/annotations are preserved)
 grounding_data/vifood/images/
@@ -57,3 +59,12 @@ ENV/
 *.swp
 *.swo
 .git_sub_bak
+.cache_vlm/
+web_app.log
+
+# ViFood-54: ảnh giải nén từ zip/images.zip
+grounding_data/vifood54/images/
+# ViFood-54: jsonl sinh lại được bằng scripts/vifood54 (build_vifood54, build_captions, make_ov_split); bản v1 là sao lưu
+grounding_data/vifood54/annotations*/*.jsonl
+grounding_data/vifood54/annotations_v1/
+scripts/**/__pycache__/

@@ -13,7 +13,8 @@ from .loading import (FilterAnnotations, InferencerLoader, LoadAnnotations,
                       LoadEmptyAnnotations, LoadImageFromNDArray,
                       LoadMultiChannelImageFromFiles, LoadPanopticAnnotations,
                       LoadProposals, LoadTrackAnnotations)
-from .text_transformers import LoadTextAnnotations, RandomSamplingNegPos,RandomSamplingNegPos2
+from .text_transformers import (LoadTextAnnotations, RandomSamplingNegPos, RandomSamplingNegPos2,
+                                SampleCaptionVariant)
 from .transformers_glip import GTBoxSubOne_GLIP, RandomFlip_GLIP
 from .transforms import (Albu, CachedMixUp, CachedMosaic, CopyPaste, CutOut,
                          Expand, FixScaleResize, FixShapeResize,

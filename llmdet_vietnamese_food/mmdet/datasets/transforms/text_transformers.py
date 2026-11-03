@@ -260,7 +260,9 @@ class RandomSamplingNegPos2(BaseTransform):
                  max_tokens=256,
                  num_region_caption=0,
                  full_sampling_prob=0.5,
-                 label_map_file=None):
+                 label_map_file=None,
+                 class_drop_file=None,
+                 vg_negative_file=None):
         if AutoTokenizer is None:
             raise RuntimeError(
                 'transformers is not installed, please install it by: '
@@ -280,6 +282,21 @@ class RandomSamplingNegPos2(BaseTransform):
         if label_map_file:
             with open(label_map_file, 'r') as file:
                 self.label_map = json.load(file)
+        # Class dropout cho lớp đầu (OD mode): {label_id: prob}. Lớp bị drop ở một mẫu thì
+        # bỏ box của nó và không đưa tên vào prompt (kể cả làm negative) -> không sinh negative sai.
+        self.class_drop_prob = {}
+        if class_drop_file:
+            with open(class_drop_file, 'r') as file:
+                self.class_drop_prob = {int(k): float(v) for k, v in json.load(file).items()}
+        # Negative cho VG mode (caption): taxonomy.json -> tên lớp + lớp dễ nhầm (confusable_with).
+        # Không có file thì vg_aug giữ hành vi gốc (không negative).
+        self.vg_names, self.vg_confusable = [], {}
+        if vg_negative_file:
+            with open(vg_negative_file, 'r', encoding='utf-8') as file:
+                classes = json.load(file)['classes']
+            self.vg_names = [c['name'] for c in classes]
+            self.vg_confusable = {c['name'].lower(): [o['name'] for o in c.get('confusable_with', [])]
+                                  for c in classes}
         from llava.constants import IGNORE_INDEX, IMAGE_TOKEN_INDEX
         self.IGNORE_INDEX = IGNORE_INDEX
         self.IMAGE_TOKEN_INDEX = IMAGE_TOKEN_INDEX
@@ -426,8 +443,9 @@ class RandomSamplingNegPos2(BaseTransform):
             text = text + '. '
 
         phrases = results['phrases']
-        # TODO: add neg
         positive_label_list = np.unique(gt_labels).tolist()
+        if self.vg_names:
+            text = self._append_vg_negatives(text, {phrases[l]['phrase'] for l in positive_label_list})
         label_to_positions = {}
         for label in positive_label_list:
             label_to_positions[label] = phrases[label]['tokens_positive']
@@ -438,6 +456,36 @@ class RandomSamplingNegPos2(BaseTransform):
         results['text'] = text
         results['tokens_positive'] = label_to_positions
         return results
+
+    def _append_vg_negatives(self, text, present):
+        """Nối tên lớp KHÔNG có trong ảnh sau caption ('<caption> tên a. tên b. ').
+
+        Lớp dễ nhầm với lớp có mặt (taxonomy confusable_with) được ưu tiên và luôn giữ khi còn
+        chỗ; lớp còn lại lấy hết (xác suất full_sampling_prob) hoặc một số ngẫu nhiên, giống od_aug.
+        Span dương nằm trong caption phía trước nên không đổi vị trí.
+        """
+        present = {p.lower() for p in present}
+        hard = []
+        for p in present:
+            for n in self.vg_confusable.get(p, ()):
+                if n.lower() not in present and n not in hard:
+                    hard.append(n)
+        rest = [n for n in self.vg_names if n.lower() not in present and n not in hard]
+        random.shuffle(hard)
+        random.shuffle(rest)
+        if random.random() >= self.full_sampling_prob:
+            rest = rest[:random.randint(0, len(rest))]
+        budget = self.max_tokens - 2 - len(self.tokenizer.tokenize(text))  # [CLS], [SEP]
+        chosen = []
+        for n in hard + rest:
+            k = len(self.tokenizer.tokenize(n + '. '))
+            if k <= budget:
+                chosen.append(n.lower())
+                budget -= k
+        random.shuffle(chosen)
+        if not chosen:
+            return text
+        return text.rstrip() + ' ' + '. '.join(chosen) + '. '
 
     def od_aug(self, results):
         gt_bboxes = results['gt_bboxes']
@@ -450,6 +498,21 @@ class RandomSamplingNegPos2(BaseTransform):
             text = self.label_map
         else:
             text = results['text']
+        text = dict(text)  # không sửa label_map dùng chung khi chọn alias
+        num_input_boxes = len(gt_labels)
+
+        dropped_labels = set()
+        if self.class_drop_prob and len(gt_labels) > 0:
+            present = np.unique(gt_labels).tolist()
+            dropped_labels = {l for l in present
+                              if random.random() < self.class_drop_prob.get(int(l), 0.0)}
+            if len(dropped_labels) == len(present):  # luôn giữ ít nhất một lớp dương
+                dropped_labels.discard(random.choice(present))
+            if dropped_labels:
+                keep = ~np.isin(gt_labels, list(dropped_labels))
+                gt_bboxes = gt_bboxes[torch.from_numpy(keep)] if isinstance(
+                    gt_bboxes, torch.Tensor) else gt_bboxes[keep]
+                gt_labels = gt_labels[keep]
 
         original_box_num = len(gt_labels)
         # If the category name is in the format of 'a/b' (in object365),
@@ -466,7 +529,7 @@ class RandomSamplingNegPos2(BaseTransform):
             print('WARNING: removed {} boxes due to positive caption overflow'.
                   format(original_box_num - len(gt_bboxes)))
 
-        valid_negative_indexes = list(text.keys())
+        valid_negative_indexes = [k for k in text.keys() if int(k) not in dropped_labels]
 
         positive_label_list = np.unique(gt_labels).tolist()
         full_negative = self.num_sample_negative
@@ -530,11 +593,38 @@ class RandomSamplingNegPos2(BaseTransform):
         results['text'] = pheso_caption
         results['tokens_positive'] = label_to_positions
 
+        # box bị bỏ (class dropout / tràn token) -> cắt gt_ignore_flags cho cùng độ dài,
+        # nếu không PackDetInputs sẽ lệch index. ODVG OD mode không có box ignore.
+        if 'gt_ignore_flags' in results and len(results['gt_ignore_flags']) != len(gt_labels):
+            assert len(results['gt_ignore_flags']) == num_input_boxes and \
+                not results['gt_ignore_flags'].any()
+            results['gt_ignore_flags'] = np.zeros(len(gt_labels), dtype=bool)
+
         return results
 
 
 
 
+
+
+@TRANSFORMS.register_module()
+class SampleCaptionVariant(BaseTransform):
+    """Chọn ngẫu nhiên một biến thể caption (ODVGDataset `caption_variants`) cho mỗi lần load.
+
+    Đặt SAU RandomFlip: nếu ảnh đã lật ngang thì dùng bản caption lật (trái <-> phải) để từ chỉ
+    vị trí khớp ảnh. Box không đổi, chỉ thay `text` và tokens_positive của từng region.
+    """
+
+    def transform(self, results: dict) -> dict:
+        variants = results.get('caption_variants')
+        if not variants:
+            return results
+        v = random.choice(variants)
+        flipped = results.get('flip', False) and results.get('flip_direction') == 'horizontal'
+        results['text'] = v['flip_text'] if flipped else v['text']
+        tokens = v['flip_tokens'] if flipped else v['tokens']
+        results['phrases'] = {i: dict(p, tokens_positive=tokens[i]) for i, p in results['phrases'].items()}
+        return results
 
 
 @TRANSFORMS.register_module()

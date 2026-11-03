@@ -25,6 +25,11 @@ Thư mục này lưu trữ chi tiết tiến độ công việc kỹ thuật đ�
 | **27/09/2026** | **Session 14** | Pha 5: Xây dựng Ứng dụng Web Demo Tương tác (Gradio), Tích hợp Module Dinh Dưỡng & Đo Hiệu năng Suy luận | [2026-09-27_phase5_web_demo_and_qualitative_evaluation.md](file:///home/atin/tuan/SoPSoP/sessions/2026-09-27_phase5_web_demo_and_qualitative_evaluation.md) |
 | **27/09/2026** | **Session 15** | Pha 5.5: Triển khai Cải tiến Bước 2 (Multi-Prompting x3) & Bước 3 (High-Res 800 Multi-Scale Training), Kiểm tra Gemini API | [2026-09-27_phase5_5_multi_prompt_res800_training.md](file:///home/atin/tuan/SoPSoP/sessions/2026-09-27_phase5_5_multi_prompt_res800_training.md) |
 | **28/09/2026** | **Session 16** | Pha 5.6: Hoàn tất Huấn luyện Exp 4 (10,000 iters), Đánh giá Benchmark Định lượng COCO & Cập nhật Web Demo | [2026-09-28_phase5_6_exp4_evaluation_and_app_update.md](file:///home/atin/tuan/SoPSoP/sessions/2026-09-28_phase5_6_exp4_evaluation_and_app_update.md) |
+| **27/10/2026** | **Session 17** | Pha 0 ViFood-54: taxonomy 54 lớp, gộp 2 zip CVAT, split theo ảnh gốc, cân bằng lớp (RFS + class dropout), B0 zero-shot & khởi chạy B1 (OD + negative) — kế hoạch tiếp: [PLAN_VIFOOD54.md](PLAN_VIFOOD54.md) | [2026-10-27_vifood54_phase0_b1_od.md](2026-10-27_vifood54_phase0_b1_od.md) |
+| **28/10/2026** | **Session 18** | Pha 1: test B1 (mAP 0.310) + phân tích lỗi; Pha 2: bộ sinh caption hình thái (attribute bank, lint BERT bỏ dấu, 6 biến thể/ảnh) | [2026-10-28_phase1_b1_od_training_completion.md](2026-10-28_phase1_b1_od_training_completion.md) · [2026-10-28_phase2_morphology_captions.md](2026-10-28_phase2_morphology_captions.md) |
+| **31/10/2026** | **Session 19** | Nhãn sửa qua crops_review; taxonomy v2 (trường visual, supercategory, confusable_with, ov_split, nutrition_key); build lại Pha 0/2 giữ split; train lại B1 | [2026-10-31_relabel_taxonomy_v2.md](2026-10-31_relabel_taxonomy_v2.md) |
+| **31/10/2026** | **Session 20** | Pha 3: loader caption VG (biến thể + bản lật, negative khó từ confusable_with), config B3 trộn OD+VG, chạy B3 | [2026-10-31_phase3_b3.md](2026-10-31_phase3_b3.md) |
+| **01/11/2026** | **Session 21** | Grounding câu (B3 L2 R@1 0.774 vs B1-v2 0.363), B3b tốt nhất (mAP 0.323); thí nghiệm OV base/novel | [2026-10-31_phase3_b3.md](2026-10-31_phase3_b3.md) · [2026-11-01_ov_experiment.md](2026-11-01_ov_experiment.md) |
 
 ---
 

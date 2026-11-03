@@ -1,0 +1,2687 @@
+{
+ "version": "vifood54-v2",
+ "schema": {
+  "id": "chỉ số lớp = thứ tự obj.names trong zip CVAT (id nguồn)",
+  "name": "tên tiếng Việt, dùng NGUYÊN VĂN làm prompt cho BERT; không đổi tùy tiện (đổi = đổi lớp)",
+  "en": "tên tiếng Anh (báo cáo, so sánh zero-shot)",
+  "aliases": "tên gọi khác / vùng miền: app (truy vấn người dùng), prompt OV; không đưa vào prompt train",
+  "group": "dish | side | sauce | catch_all; catch_all không có thuộc tính hình thái, báo cáo mAP có/không catch_all",
+  "supercategory": "nhóm lớn (khóa trong `supercategories`): AP theo nhóm, phân tầng split OV",
+  "visual.definition": "một câu mô tả NHÌN THẤY (không hương vị, không tên lớp khác): caption vùng, prompt LMM, bảng luận văn",
+  "visual.units": "lượng từ khi 1 box (tô, đĩa, chén...)",
+  "visual.multi_units": "lượng từ khi ≥2 box cùng lớp (box thường là từng miếng); thiếu thì dùng units",
+  "visual.attrs": "cụm thuộc tính hình thái ghép vào caption L2; lint trên token BERT đã bỏ dấu",
+  "confusable_with": "lớp dễ nhầm + dấu hiệu nhìn thấy của LỚP NÀY để phân biệt: negative khó cho VG (Pha 3), cặp theo dõi khi đánh giá",
+  "ov_split": "base | novel cho thí nghiệm open-vocabulary",
+  "nutrition_key": "khóa trong llmdet_vietnamese_food/nutrition_vifood_51.json; null = chưa có dữ liệu",
+  "label_notes": "thực tế nhãn khác tên gọi thông thường (đọc trước khi diễn giải kết quả)"
+ },
+ "source_names": [
+  "bánh bèo",
+  "bánh bột lọc",
+  "bánh canh",
+  "bánh chưng",
+  "bánh cuốn",
+  "bánh căn",
+  "bánh giò",
+  "bánh khọt",
+  "bánh mì",
+  "bánh pía",
+  "bánh tráng",
+  "bánh tét",
+  "bánh xèo",
+  "bánh đúc",
+  "bún bò Huế",
+  "bún tươi",
+  "bún mắm",
+  "bún riêu",
+  "bún thịt nướng",
+  "bún đậu mắm tôm",
+  "canh",
+  "cao lầu",
+  "cháo lòng",
+  "chả giò",
+  "cua",
+  "cá chiên",
+  "cơm chiên",
+  "cơm tấm",
+  "gà luộc",
+  "gỏi",
+  "gỏi cuốn",
+  "heo quay",
+  "hàu",
+  "hủ tiếu",
+  "lẩu",
+  "mì Quảng",
+  "mực",
+  "nem chua",
+  "ngao sò",
+  "phở",
+  "rau sống",
+  "súp cua",
+  "thịt bò",
+  "rau luộc",
+  "tôm",
+  "xôi",
+  "ốc",
+  "món ăn khác",
+  "rau xào",
+  "đồ chấm",
+  "gà quay",
+  "nem rán",
+  "món tráng miệng",
+  "quẩy"
+ ],
+ "merge_into": {},
+ "supercategories": {
+  "banh": {
+   "name": "bánh và món bột",
+   "en": "cakes & dumplings"
+  },
+  "noodle_soup": {
+   "name": "món sợi có nước dùng",
+   "en": "noodle soups"
+  },
+  "noodle_dry": {
+   "name": "bún ăn khô / bún kèm",
+   "en": "dry noodle dishes"
+  },
+  "rice": {
+   "name": "cơm, xôi, cháo",
+   "en": "rice & porridge"
+  },
+  "soup_pot": {
+   "name": "canh, súp, lẩu",
+   "en": "soups & hotpot"
+  },
+  "seafood": {
+   "name": "hải sản và cá",
+   "en": "seafood & fish"
+  },
+  "meat": {
+   "name": "thịt, gà, giò chả",
+   "en": "meat & poultry"
+  },
+  "roll_salad": {
+   "name": "cuốn và gỏi",
+   "en": "rolls & salads"
+  },
+  "vegetable": {
+   "name": "rau",
+   "en": "vegetables"
+  },
+  "sauce": {
+   "name": "nước chấm",
+   "en": "dipping sauces"
+  },
+  "other": {
+   "name": "nhóm gom (catch-all)",
+   "en": "catch-all"
+  }
+ },
+ "classes": [
+  {
+   "id": 0,
+   "name": "bánh bèo",
+   "en": "steamed rice cakes",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "banh",
+   "visual": {
+    "definition": "bánh bột gạo hấp mỏng màu trắng đựng trong chén nhỏ, mặt rắc ruốc màu cam và mỡ hành xanh",
+    "units": [
+     "chén",
+     "chén nhỏ"
+    ],
+    "attrs": [
+     "lớp bột trắng mỏng",
+     "rắc ruốc màu cam",
+     "điểm mỡ hành xanh",
+     "mặt bột trắng phẳng"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "bánh bột lọc",
+     "cue": "bột trắng đục trong chén nhỏ"
+    },
+    {
+     "name": "bánh khọt",
+     "cue": "bột trắng đục trong chén, rắc ruốc"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "bánh bèo",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 87,
+     "boxes": 784
+    },
+    "val": {
+     "images": 11,
+     "boxes": 122
+    },
+    "test": {
+     "images": 10,
+     "boxes": 71
+    }
+   }
+  },
+  {
+   "id": 1,
+   "name": "bánh bột lọc",
+   "en": "tapioca dumplings",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "banh",
+   "visual": {
+    "definition": "miếng bánh dẹt vỏ bột trong suốt lộ nhân màu cam đỏ, thường đặt trên lá chuối",
+    "units": [
+     "phần",
+     "đĩa"
+    ],
+    "multi_units": [
+     "chiếc",
+     "phần"
+    ],
+    "attrs": [
+     "vỏ bột trong suốt",
+     "lộ nhân màu cam đỏ bên trong",
+     "đặt trên lá chuối xanh",
+     "miếng dẹt hình chữ nhật"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "bánh bèo",
+     "cue": "vỏ trong suốt lộ nhân"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "bánh bột lọc",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 84,
+     "boxes": 331
+    },
+    "val": {
+     "images": 12,
+     "boxes": 34
+    },
+    "test": {
+     "images": 12,
+     "boxes": 66
+    }
+   }
+  },
+  {
+   "id": 2,
+   "name": "bánh canh",
+   "en": "thick noodle soup",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "noodle_soup",
+   "visual": {
+    "definition": "tô sợi to tròn màu trắng đục trong nước dùng sánh, trên mặt có thịt, giò và hành lá",
+    "units": [
+     "tô",
+     "bát"
+    ],
+    "attrs": [
+     "sợi to tròn màu trắng đục",
+     "nước dùng sánh",
+     "rắc hành lá xanh",
+     "lát giò và miếng thịt trên mặt"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "bún bò Huế",
+     "cue": "nước sánh màu nhạt"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "bánh canh",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 65,
+     "boxes": 125
+    },
+    "val": {
+     "images": 9,
+     "boxes": 12
+    },
+    "test": {
+     "images": 8,
+     "boxes": 12
+    }
+   }
+  },
+  {
+   "id": 3,
+   "name": "bánh chưng",
+   "en": "square sticky rice cake",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "banh",
+   "visual": {
+    "definition": "khối nếp hình vuông bọc lá dong xanh buộc lạt, lát cắt lộ lớp nếp xanh và nhân vàng",
+    "units": [
+     "chiếc",
+     "cái"
+    ],
+    "attrs": [
+     "hình vuông vức",
+     "bọc lá dong xanh",
+     "lạt buộc thành ô vuông",
+     "lát cắt có lớp nếp xanh và nhân vàng"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "bánh tét",
+     "cue": "hình vuông, gói lá dong"
+    },
+    {
+     "name": "bánh giò",
+     "cue": "hình vuông, buộc lạt"
+    },
+    {
+     "name": "bánh đúc",
+     "cue": "khối nếp bọc lá dong"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "bánh chưng",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 55,
+     "boxes": 203
+    },
+    "val": {
+     "images": 8,
+     "boxes": 19
+    },
+    "test": {
+     "images": 8,
+     "boxes": 59
+    }
+   }
+  },
+  {
+   "id": 4,
+   "name": "bánh cuốn",
+   "en": "steamed rice rolls",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "banh",
+   "visual": {
+    "definition": "lớp bột gạo trắng mỏng cuộn thành dãy trên đĩa, mặt bóng rắc hành phi vàng",
+    "units": [
+     "đĩa",
+     "phần"
+    ],
+    "multi_units": [
+     "phần"
+    ],
+    "attrs": [
+     "lớp bột trắng mỏng cuộn tròn",
+     "rắc hành phi vàng",
+     "bề mặt trắng bóng",
+     "xếp thành dãy trên đĩa"
+    ]
+   },
+   "confusable_with": [],
+   "ov_split": "base",
+   "nutrition_key": "bánh cuốn",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 77,
+     "boxes": 152
+    },
+    "val": {
+     "images": 9,
+     "boxes": 15
+    },
+    "test": {
+     "images": 10,
+     "boxes": 20
+    }
+   }
+  },
+  {
+   "id": 5,
+   "name": "bánh căn",
+   "en": "mini savory pancakes",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "banh",
+   "visual": {
+    "definition": "bánh tròn nhỏ màu trắng đáy vàng nâu, mặt lấm tấm lỗ, thường xếp úp từng cặp",
+    "units": [
+     "phần",
+     "đĩa"
+    ],
+    "multi_units": [
+     "chiếc",
+     "phần"
+    ],
+    "attrs": [
+     "bánh tròn nhỏ màu trắng",
+     "đáy vàng nâu",
+     "mặt bánh lấm tấm lỗ nhỏ",
+     "xếp úp từng cặp",
+     "rắc hành lá"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "bánh khọt",
+     "cue": "bánh trắng đáy vàng, úp từng cặp"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "bánh căn",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 88,
+     "boxes": 254
+    },
+    "val": {
+     "images": 11,
+     "boxes": 41
+    },
+    "test": {
+     "images": 11,
+     "boxes": 42
+    }
+   }
+  },
+  {
+   "id": 6,
+   "name": "bánh giò",
+   "en": "pyramid rice dumpling",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "banh",
+   "visual": {
+    "definition": "bánh hình chóp bọc lá chuối, vỏ bột trắng đục, bên trong có nhân thịt màu sẫm",
+    "units": [
+     "chiếc",
+     "phần"
+    ],
+    "multi_units": [
+     "chiếc",
+     "phần"
+    ],
+    "attrs": [
+     "hình chóp",
+     "bọc lá chuối",
+     "lớp bột trắng đục",
+     "nhân thịt và mộc nhĩ màu sẫm"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "bánh chưng",
+     "cue": "hình chóp, vỏ bột trắng đục"
+    }
+   ],
+   "ov_split": "novel",
+   "nutrition_key": "bánh giò",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 73,
+     "boxes": 153
+    },
+    "val": {
+     "images": 9,
+     "boxes": 17
+    },
+    "test": {
+     "images": 9,
+     "boxes": 15
+    }
+   }
+  },
+  {
+   "id": 7,
+   "name": "bánh khọt",
+   "en": "mini crispy pancakes",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "banh",
+   "visual": {
+    "definition": "bánh tròn nhỏ màu vàng sậm viền nâu xếp sát nhau, mặt điểm nhân màu cam hồng",
+    "units": [
+     "phần",
+     "đĩa"
+    ],
+    "multi_units": [
+     "chiếc",
+     "phần"
+    ],
+    "attrs": [
+     "bánh tròn nhỏ màu vàng",
+     "viền vàng nâu",
+     "mặt bánh điểm nhân màu cam hồng",
+     "xếp nhiều cái sát nhau"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "bánh căn",
+     "cue": "bánh vàng sậm, nhân màu cam hồng"
+    },
+    {
+     "name": "bánh bèo",
+     "cue": "bánh vàng sậm viền nâu"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "bánh khọt",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 180,
+     "boxes": 1089
+    },
+    "val": {
+     "images": 23,
+     "boxes": 112
+    },
+    "test": {
+     "images": 23,
+     "boxes": 134
+    }
+   }
+  },
+  {
+   "id": 8,
+   "name": "bánh mì",
+   "en": "vietnamese baguette",
+   "aliases": [
+    "bánh mỳ"
+   ],
+   "group": "dish",
+   "supercategory": "banh",
+   "visual": {
+    "definition": "ổ bánh dài vỏ vàng nâu, hai đầu thon, thường xẻ dọc kẹp thịt và lá xanh",
+    "units": [
+     "ổ",
+     "chiếc"
+    ],
+    "attrs": [
+     "ổ bánh dài vỏ vàng nâu",
+     "xẻ dọc kẹp nhân",
+     "lộ lá xanh và lát thịt bên trong",
+     "hai đầu thon nhọn"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "bánh tráng",
+     "cue": "ổ dài vỏ vàng nâu dày"
+    },
+    {
+     "name": "bánh xèo",
+     "cue": "ổ dài vỏ dày xẻ dọc"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "bánh mì",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 115,
+     "boxes": 308
+    },
+    "val": {
+     "images": 15,
+     "boxes": 34
+    },
+    "test": {
+     "images": 15,
+     "boxes": 42
+    }
+   }
+  },
+  {
+   "id": 9,
+   "name": "bánh pía",
+   "en": "pia pastry",
+   "aliases": [
+    "bánh bía"
+   ],
+   "group": "dish",
+   "supercategory": "banh",
+   "visual": {
+    "definition": "bánh tròn dẹt vỏ nhiều lớp màu trắng ngà in dấu chữ đỏ, lát cắt lộ nhân vàng",
+    "units": [
+     "chiếc",
+     "cái"
+    ],
+    "attrs": [
+     "bánh tròn dẹt",
+     "vỏ nhiều lớp màu trắng ngà",
+     "in dấu chữ màu đỏ trên mặt",
+     "lát cắt lộ nhân vàng và lòng đỏ trứng"
+    ]
+   },
+   "confusable_with": [],
+   "ov_split": "novel",
+   "nutrition_key": "bánh pía",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 60,
+     "boxes": 343
+    },
+    "val": {
+     "images": 8,
+     "boxes": 52
+    },
+    "test": {
+     "images": 8,
+     "boxes": 33
+    }
+   }
+  },
+  {
+   "id": 10,
+   "name": "bánh tráng",
+   "en": "rice paper",
+   "aliases": [
+    "bánh tráng nướng",
+    "bánh đa"
+   ],
+   "group": "dish",
+   "supercategory": "banh",
+   "visual": {
+    "definition": "lá bánh mỏng tròn màu trắng mờ lấm tấm, có khi nướng phủ trứng và hành",
+    "units": [
+     "phần",
+     "đĩa"
+    ],
+    "multi_units": [
+     "phần"
+    ],
+    "attrs": [
+     "lá bánh mỏng tròn",
+     "bề mặt trắng mờ lấm tấm",
+     "nướng phủ trứng và hành trên mặt",
+     "bẻ thành miếng nhỏ"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "bánh mì",
+     "cue": "lá mỏng tròn trắng mờ"
+    },
+    {
+     "name": "bánh xèo",
+     "cue": "lá mỏng phẳng, phủ trứng nướng"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "bánh tráng",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 157,
+     "boxes": 229
+    },
+    "val": {
+     "images": 20,
+     "boxes": 27
+    },
+    "test": {
+     "images": 20,
+     "boxes": 30
+    }
+   }
+  },
+  {
+   "id": 11,
+   "name": "bánh tét",
+   "en": "cylindrical rice cake",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "banh",
+   "visual": {
+    "definition": "đòn nếp hình trụ dài bọc lá chuối buộc lạt, cắt khoanh tròn lộ nhân giữa",
+    "units": [
+     "phần",
+     "đĩa"
+    ],
+    "multi_units": [
+     "khoanh",
+     "phần"
+    ],
+    "attrs": [
+     "hình trụ dài",
+     "cắt thành khoanh tròn",
+     "lát cắt có vòng nếp bao quanh nhân vàng",
+     "bọc lá chuối buộc lạt ngang"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "bánh chưng",
+     "cue": "hình trụ, cắt khoanh tròn"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "bánh tét",
+   "label_notes": "Có cả nguyên đòn bọc lá và khoanh cắt.",
+   "stats": {
+    "train": {
+     "images": 142,
+     "boxes": 596
+    },
+    "val": {
+     "images": 17,
+     "boxes": 81
+    },
+    "test": {
+     "images": 19,
+     "boxes": 68
+    }
+   }
+  },
+  {
+   "id": 12,
+   "name": "bánh xèo",
+   "en": "sizzling crepe",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "banh",
+   "visual": {
+    "definition": "bánh mỏng màu vàng nghệ gấp đôi hình bán nguyệt, mép vàng nâu, lộ giá đỗ bên trong",
+    "units": [
+     "chiếc",
+     "phần"
+    ],
+    "attrs": [
+     "bánh mỏng màu vàng nghệ",
+     "gấp đôi hình bán nguyệt",
+     "lộ giá đỗ trắng bên trong",
+     "mép bánh vàng nâu"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "bánh tráng",
+     "cue": "bánh vàng nghệ gấp đôi, lộ giá đỗ"
+    },
+    {
+     "name": "bánh mì",
+     "cue": "bánh mỏng vàng gấp hình bán nguyệt"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "bánh xèo",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 157,
+     "boxes": 318
+    },
+    "val": {
+     "images": 20,
+     "boxes": 50
+    },
+    "test": {
+     "images": 20,
+     "boxes": 38
+    }
+   }
+  },
+  {
+   "id": 13,
+   "name": "bánh đúc",
+   "en": "steamed savory cake",
+   "aliases": [
+    "bánh đúc lá dứa"
+   ],
+   "group": "dish",
+   "supercategory": "banh",
+   "visual": {
+    "definition": "khối bột mịn màu xanh lá hoặc trắng cắt miếng hình thoi hay vuông, mặt nhẵn bóng",
+    "units": [
+     "phần",
+     "đĩa"
+    ],
+    "multi_units": [
+     "phần"
+    ],
+    "attrs": [
+     "khối bột màu xanh lá hoặc trắng",
+     "cắt miếng hình thoi hoặc vuông",
+     "bề mặt nhẵn bóng",
+     "xếp chồng trên đĩa"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "bánh chưng",
+     "cue": "miếng bột mịn nhẵn bóng, không lá"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "bánh đúc",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 50,
+     "boxes": 210
+    },
+    "val": {
+     "images": 7,
+     "boxes": 25
+    },
+    "test": {
+     "images": 7,
+     "boxes": 59
+    }
+   }
+  },
+  {
+   "id": 14,
+   "name": "bún bò Huế",
+   "en": "hue beef noodle soup",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "noodle_soup",
+   "visual": {
+    "definition": "tô sợi to tròn trong nước dùng đỏ cam có váng dầu, có khoanh giò heo và lát thịt",
+    "units": [
+     "tô",
+     "bát"
+    ],
+    "attrs": [
+     "nước dùng màu đỏ cam có váng dầu",
+     "sợi to tròn màu trắng",
+     "miếng thịt và khoanh giò heo",
+     "lá xanh trên mặt"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "bún riêu",
+     "cue": "váng dầu đỏ, khoanh giò heo, sợi to"
+    },
+    {
+     "name": "bánh canh",
+     "cue": "nước đỏ cam có váng dầu"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "bún bò Huế",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 97,
+     "boxes": 158
+    },
+    "val": {
+     "images": 13,
+     "boxes": 17
+    },
+    "test": {
+     "images": 13,
+     "boxes": 23
+    }
+   }
+  },
+  {
+   "id": 15,
+   "name": "bún tươi",
+   "en": "rice vermicelli",
+   "aliases": [
+    "bún",
+    "bún lá"
+   ],
+   "group": "side",
+   "supercategory": "noodle_dry",
+   "visual": {
+    "definition": "sợi bún nhỏ màu trắng xếp thành lá hoặc cuộn, đặt riêng trên đĩa",
+    "units": [
+     "đĩa",
+     "phần"
+    ],
+    "multi_units": [
+     "phần"
+    ],
+    "attrs": [
+     "sợi nhỏ màu trắng",
+     "xếp thành lá hoặc cuộn",
+     "đặt riêng trên đĩa",
+     "mặt sợi trắng mịn"
+    ]
+   },
+   "confusable_with": [],
+   "ov_split": "base",
+   "nutrition_key": "bún",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 120,
+     "boxes": 146
+    },
+    "val": {
+     "images": 15,
+     "boxes": 19
+    },
+    "test": {
+     "images": 15,
+     "boxes": 23
+    }
+   }
+  },
+  {
+   "id": 16,
+   "name": "bún mắm",
+   "en": "fermented fish noodle soup",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "noodle_soup",
+   "visual": {
+    "definition": "tô sợi nhỏ trong nước dùng nâu đục, trên mặt có khoanh hải sản và lát thịt heo",
+    "units": [
+     "tô",
+     "bát"
+    ],
+    "attrs": [
+     "nước dùng màu nâu đục",
+     "khoanh hải sản màu trắng và cam",
+     "lát thịt heo trên mặt",
+     "sợi nhỏ màu trắng"
+    ]
+   },
+   "confusable_with": [],
+   "ov_split": "base",
+   "nutrition_key": "bún mắm",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 49,
+     "boxes": 79
+    },
+    "val": {
+     "images": 6,
+     "boxes": 14
+    },
+    "test": {
+     "images": 7,
+     "boxes": 20
+    }
+   }
+  },
+  {
+   "id": 17,
+   "name": "bún riêu",
+   "en": "crab noodle soup",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "noodle_soup",
+   "visual": {
+    "definition": "tô sợi nhỏ trong nước dùng đỏ cam, mảng riêu nâu vàng, đậu phụ chiên và lát cà chua",
+    "units": [
+     "tô",
+     "bát"
+    ],
+    "attrs": [
+     "nước dùng màu đỏ cam",
+     "mảng riêu màu nâu vàng nổi trên mặt",
+     "miếng đậu phụ chiên vàng",
+     "lát cà chua đỏ"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "bún bò Huế",
+     "cue": "mảng riêu nâu vàng, lát cà chua, đậu phụ"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "bún riêu",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 101,
+     "boxes": 173
+    },
+    "val": {
+     "images": 13,
+     "boxes": 25
+    },
+    "test": {
+     "images": 13,
+     "boxes": 21
+    }
+   }
+  },
+  {
+   "id": 18,
+   "name": "bún thịt nướng",
+   "en": "grilled pork noodle bowl",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "noodle_dry",
+   "visual": {
+    "definition": "tô sợi trắng phủ miếng thịt nướng nâu sẫm, kèm lá xanh, dưa chuột và lạc rang",
+    "units": [
+     "tô",
+     "phần"
+    ],
+    "attrs": [
+     "miếng thịt nướng màu nâu sẫm",
+     "đặt trên lớp sợi trắng",
+     "kèm lá xanh và dưa chuột",
+     "rắc lạc rang"
+    ]
+   },
+   "confusable_with": [],
+   "ov_split": "base",
+   "nutrition_key": "bún thịt nướng",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 54,
+     "boxes": 79
+    },
+    "val": {
+     "images": 7,
+     "boxes": 9
+    },
+    "test": {
+     "images": 7,
+     "boxes": 9
+    }
+   }
+  },
+  {
+   "id": 19,
+   "name": "bún đậu mắm tôm",
+   "en": "tofu and noodle platter",
+   "aliases": [
+    "bún đậu"
+   ],
+   "group": "dish",
+   "supercategory": "noodle_dry",
+   "visual": {
+    "definition": "mẹt tre lót lá chuối với đậu phụ chiên vàng, bún ép trắng và chén nước chấm tím xám",
+    "units": [
+     "mẹt",
+     "phần"
+    ],
+    "attrs": [
+     "mẹt tre lót lá chuối",
+     "miếng đậu phụ chiên vàng",
+     "lá bún ép màu trắng",
+     "chén nước chấm màu tím xám"
+    ]
+   },
+   "confusable_with": [],
+   "ov_split": "base",
+   "nutrition_key": "bún đậu mắm tôm",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 95,
+     "boxes": 159
+    },
+    "val": {
+     "images": 15,
+     "boxes": 23
+    },
+    "test": {
+     "images": 12,
+     "boxes": 24
+    }
+   }
+  },
+  {
+   "id": 20,
+   "name": "canh",
+   "en": "vietnamese soup",
+   "aliases": [
+    "canh rau",
+    "canh chua"
+   ],
+   "group": "dish",
+   "supercategory": "soup_pot",
+   "visual": {
+    "definition": "bát nước trong hoặc xanh có rau lá, thường có thìa trong bát",
+    "units": [
+     "bát",
+     "tô"
+    ],
+    "attrs": [
+     "nước trong hoặc màu xanh",
+     "rau lá xanh trong nước",
+     "có thìa trong bát",
+     "mặt nước điểm hành lá"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "đồ chấm",
+     "cue": "bát nước có rau lá, có thìa"
+    },
+    {
+     "name": "lẩu",
+     "cue": "bát nhỏ nước trong"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "canh chua",
+   "label_notes": "Gom các loại canh nước trong (canh rau, canh chua...).",
+   "stats": {
+    "train": {
+     "images": 105,
+     "boxes": 127
+    },
+    "val": {
+     "images": 13,
+     "boxes": 14
+    },
+    "test": {
+     "images": 13,
+     "boxes": 14
+    }
+   }
+  },
+  {
+   "id": 21,
+   "name": "cao lầu",
+   "en": "cao lau noodles",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "noodle_soup",
+   "visual": {
+    "definition": "tô sợi to dẹt màu vàng nâu ít nước, lát thịt xá xíu viền đỏ và rau xanh",
+    "units": [
+     "tô",
+     "bát"
+    ],
+    "attrs": [
+     "sợi to dẹt màu vàng nâu",
+     "ít nước dùng",
+     "lát thịt xá xíu viền đỏ",
+     "miếng bánh vàng hình vuông trên mặt"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "mì Quảng",
+     "cue": "sợi vàng nâu, lát xá xíu viền đỏ"
+    }
+   ],
+   "ov_split": "novel",
+   "nutrition_key": "cao lầu",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 109,
+     "boxes": 202
+    },
+    "val": {
+     "images": 13,
+     "boxes": 24
+    },
+    "test": {
+     "images": 15,
+     "boxes": 29
+    }
+   }
+  },
+  {
+   "id": 22,
+   "name": "cháo lòng",
+   "en": "pork offal congee",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "rice",
+   "visual": {
+    "definition": "bát cháo sánh màu xám nâu, mặt xếp lát lòng, dồi và hành lá",
+    "units": [
+     "bát",
+     "tô"
+    ],
+    "attrs": [
+     "cháo sánh màu xám nâu",
+     "lát lòng và dồi xếp trên mặt",
+     "rắc hành lá và tiêu",
+     "mặt cháo đặc"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "súp cua",
+     "cue": "cháo xám nâu, lát lòng và dồi"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "cháo lòng",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 133,
+     "boxes": 194
+    },
+    "val": {
+     "images": 17,
+     "boxes": 28
+    },
+    "test": {
+     "images": 17,
+     "boxes": 25
+    }
+   }
+  },
+  {
+   "id": 23,
+   "name": "chả giò",
+   "en": "vietnamese pork roll (giò lụa)",
+   "aliases": [
+    "giò lụa",
+    "chả lụa"
+   ],
+   "group": "dish",
+   "supercategory": "meat",
+   "visual": {
+    "definition": "khoanh giò màu hồng nhạt mặt cắt mịn, bọc lá chuối, cắt lát hoặc khoanh tròn",
+    "units": [
+     "phần",
+     "đĩa"
+    ],
+    "multi_units": [
+     "phần"
+    ],
+    "attrs": [
+     "khoanh giò màu hồng nhạt",
+     "cắt lát hoặc khoanh tròn",
+     "lá chuối xanh bọc ngoài",
+     "mặt cắt mịn có lỗ nhỏ"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "nem chua",
+     "cue": "khoanh to cắt lát, mặt cắt mịn"
+    },
+    {
+     "name": "nem rán",
+     "cue": "khoanh giò hồng mặt cắt mịn"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "chả",
+   "label_notes": "Trong nhãn ViFood, lớp này là giò lụa / chả lụa (khoanh giò hồng bọc lá chuối), không phải cuốn chiên. Cuốn chiên được gán nhãn nem rán. Tên lớp giữ nguyên để khớp nguồn CVAT.",
+   "stats": {
+    "train": {
+     "images": 139,
+     "boxes": 241
+    },
+    "val": {
+     "images": 17,
+     "boxes": 27
+    },
+    "test": {
+     "images": 18,
+     "boxes": 40
+    }
+   }
+  },
+  {
+   "id": 24,
+   "name": "cua",
+   "en": "crab",
+   "aliases": [
+    "cua hấp"
+   ],
+   "group": "dish",
+   "supercategory": "seafood",
+   "visual": {
+    "definition": "con có mai đỏ cam, hai càng to và chân dài xòe, đặt nguyên con trên đĩa",
+    "units": [
+     "con",
+     "phần"
+    ],
+    "multi_units": [
+     "con",
+     "phần"
+    ],
+    "attrs": [
+     "mai màu đỏ cam",
+     "hai càng to",
+     "chân dài xòe ra",
+     "đặt nguyên con trên đĩa"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "súp cua",
+     "cue": "nguyên con mai đỏ cam"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "cua",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 59,
+     "boxes": 93
+    },
+    "val": {
+     "images": 8,
+     "boxes": 17
+    },
+    "test": {
+     "images": 7,
+     "boxes": 11
+    }
+   }
+  },
+  {
+   "id": 25,
+   "name": "cá chiên",
+   "en": "fried fish",
+   "aliases": [
+    "cá rán"
+   ],
+   "group": "dish",
+   "supercategory": "seafood",
+   "visual": {
+    "definition": "con cá nguyên hoặc khúc, da vàng nâu, còn vây và đuôi",
+    "units": [
+     "phần",
+     "đĩa"
+    ],
+    "multi_units": [
+     "phần"
+    ],
+    "attrs": [
+     "nguyên con hoặc cắt khúc",
+     "da màu vàng nâu",
+     "vây và đuôi còn nguyên",
+     "rưới sốt hoặc rắc hành"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "gà quay",
+     "cue": "thân cá có vây và đuôi"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "cá chiên",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 71,
+     "boxes": 121
+    },
+    "val": {
+     "images": 9,
+     "boxes": 12
+    },
+    "test": {
+     "images": 9,
+     "boxes": 9
+    }
+   }
+  },
+  {
+   "id": 26,
+   "name": "cơm chiên",
+   "en": "fried rice",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "rice",
+   "visual": {
+    "definition": "đĩa hạt cơm rời màu vàng lẫn đậu xanh và cà rốt, đắp thành khối",
+    "units": [
+     "đĩa",
+     "phần"
+    ],
+    "multi_units": [
+     "phần"
+    ],
+    "attrs": [
+     "hạt cơm rời màu vàng",
+     "lẫn hạt đậu xanh và cà rốt đỏ",
+     "đắp thành khối tròn",
+     "rắc hành lá"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "xôi",
+     "cue": "hạt cơm rời lẫn rau củ"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "cơm chiên",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 115,
+     "boxes": 138
+    },
+    "val": {
+     "images": 15,
+     "boxes": 15
+    },
+    "test": {
+     "images": 15,
+     "boxes": 19
+    }
+   }
+  },
+  {
+   "id": 27,
+   "name": "cơm tấm",
+   "en": "broken rice",
+   "aliases": [
+    "cơm sườn"
+   ],
+   "group": "dish",
+   "supercategory": "rice",
+   "visual": {
+    "definition": "đĩa hạt cơm trắng nhỏ với miếng sườn nướng nâu sẫm, trứng hấp vàng và dưa chuột",
+    "units": [
+     "đĩa",
+     "phần"
+    ],
+    "multi_units": [
+     "phần"
+    ],
+    "attrs": [
+     "hạt cơm trắng nhỏ",
+     "miếng sườn nướng nâu sẫm",
+     "lát trứng hấp màu vàng",
+     "kèm dưa chuột và cà chua"
+    ]
+   },
+   "confusable_with": [],
+   "ov_split": "novel",
+   "nutrition_key": "cơm tấm",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 77,
+     "boxes": 102
+    },
+    "val": {
+     "images": 10,
+     "boxes": 15
+    },
+    "test": {
+     "images": 11,
+     "boxes": 13
+    }
+   }
+  },
+  {
+   "id": 28,
+   "name": "gà luộc",
+   "en": "boiled chicken",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "meat",
+   "visual": {
+    "definition": "miếng gà da vàng nhạt chặt xếp trên đĩa, thịt trắng ở mặt cắt",
+    "units": [
+     "đĩa",
+     "phần"
+    ],
+    "multi_units": [
+     "phần"
+    ],
+    "attrs": [
+     "da màu vàng nhạt",
+     "chặt miếng xếp trên đĩa",
+     "rắc lá chanh thái sợi",
+     "thịt trắng ở mặt cắt"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "gà quay",
+     "cue": "da vàng nhạt, thịt trắng"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "gà luộc",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 90,
+     "boxes": 168
+    },
+    "val": {
+     "images": 11,
+     "boxes": 11
+    },
+    "test": {
+     "images": 9,
+     "boxes": 11
+    }
+   }
+  },
+  {
+   "id": 29,
+   "name": "gỏi",
+   "en": "vietnamese salad",
+   "aliases": [
+    "nộm"
+   ],
+   "group": "dish",
+   "supercategory": "roll_salad",
+   "visual": {
+    "definition": "rau củ thái sợi nhiều màu trộn lá rau xanh, rắc lạc rang",
+    "units": [
+     "đĩa",
+     "phần"
+    ],
+    "multi_units": [
+     "phần"
+    ],
+    "attrs": [
+     "rau củ thái sợi nhiều màu",
+     "trộn lá rau xanh",
+     "rắc lạc rang",
+     "sợi cà rốt và ớt đỏ"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "gỏi cuốn",
+     "cue": "sợi rau củ trộn trên đĩa"
+    },
+    {
+     "name": "rau sống",
+     "cue": "sợi rau củ nhiều màu, rắc lạc"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "gỏi",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 66,
+     "boxes": 71
+    },
+    "val": {
+     "images": 7,
+     "boxes": 7
+    },
+    "test": {
+     "images": 9,
+     "boxes": 10
+    }
+   }
+  },
+  {
+   "id": 30,
+   "name": "gỏi cuốn",
+   "en": "fresh spring rolls",
+   "aliases": [
+    "nem cuốn"
+   ],
+   "group": "dish",
+   "supercategory": "roll_salad",
+   "visual": {
+    "definition": "cuộn dài vỏ trong mờ lộ màu hồng cam và lá xanh bên trong",
+    "units": [
+     "phần",
+     "đĩa"
+    ],
+    "multi_units": [
+     "phần"
+    ],
+    "attrs": [
+     "vỏ trong mờ",
+     "lộ màu hồng cam và lá xanh bên trong",
+     "cuộn dài hình trụ",
+     "xếp hàng trên đĩa"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "nem chua",
+     "cue": "vỏ trong mờ lộ nhân bên trong"
+    },
+    {
+     "name": "nem rán",
+     "cue": "vỏ trong mờ"
+    },
+    {
+     "name": "gỏi",
+     "cue": "cuộn dài vỏ trong mờ"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "gỏi cuốn",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 115,
+     "boxes": 400
+    },
+    "val": {
+     "images": 15,
+     "boxes": 44
+    },
+    "test": {
+     "images": 16,
+     "boxes": 65
+    }
+   }
+  },
+  {
+   "id": 31,
+   "name": "heo quay",
+   "en": "roast pork",
+   "aliases": [
+    "thịt quay",
+    "sườn nướng"
+   ],
+   "group": "dish",
+   "supercategory": "meat",
+   "visual": {
+    "definition": "miếng thịt màu nâu đỏ, bề mặt cháy xém hoặc da vàng phồng, thái lát dày",
+    "units": [
+     "phần",
+     "đĩa"
+    ],
+    "multi_units": [
+     "phần"
+    ],
+    "attrs": [
+     "miếng thịt màu nâu đỏ",
+     "bề mặt cháy xém hoặc da vàng phồng",
+     "thái lát dày",
+     "bóng dầu"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "gà quay",
+     "cue": "thịt thái lát dày, da phồng hoặc cháy xém"
+    },
+    {
+     "name": "thịt bò",
+     "cue": "lát dày, da phồng hoặc cháy xém"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "heo quay",
+   "label_notes": "Gồm cả thịt heo nướng và sườn nướng.",
+   "stats": {
+    "train": {
+     "images": 121,
+     "boxes": 204
+    },
+    "val": {
+     "images": 16,
+     "boxes": 22
+    },
+    "test": {
+     "images": 16,
+     "boxes": 22
+    }
+   }
+  },
+  {
+   "id": 32,
+   "name": "hàu",
+   "en": "oyster",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "seafood",
+   "visual": {
+    "definition": "thịt màu trắng xám nằm trên nửa vỏ xám sần sùi, thường phủ mỡ hành",
+    "units": [
+     "con",
+     "phần"
+    ],
+    "multi_units": [
+     "con",
+     "phần"
+    ],
+    "attrs": [
+     "vỏ xám sần sùi",
+     "nằm trên một nửa vỏ",
+     "thịt màu trắng xám",
+     "phủ mỡ hành hoặc lớp phủ màu vàng"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "ngao sò",
+     "cue": "nửa vỏ lớn sần sùi, thịt trắng xám"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "hàu",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 94,
+     "boxes": 373
+    },
+    "val": {
+     "images": 12,
+     "boxes": 49
+    },
+    "test": {
+     "images": 12,
+     "boxes": 33
+    }
+   }
+  },
+  {
+   "id": 33,
+   "name": "hủ tiếu",
+   "en": "hu tieu noodles",
+   "aliases": [
+    "hủ tíu"
+   ],
+   "group": "dish",
+   "supercategory": "noodle_soup",
+   "visual": {
+    "definition": "tô sợi nhỏ trong nước dùng trong, có trứng cút, lát thịt và lá xanh",
+    "units": [
+     "tô",
+     "bát"
+    ],
+    "attrs": [
+     "sợi nhỏ trong",
+     "nước dùng trong",
+     "trứng cút trắng và lát thịt",
+     "lá xanh trên mặt"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "phở",
+     "cue": "sợi nhỏ trong, có trứng cút"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "hủ tiếu",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 84,
+     "boxes": 132
+    },
+    "val": {
+     "images": 11,
+     "boxes": 16
+    },
+    "test": {
+     "images": 11,
+     "boxes": 30
+    }
+   }
+  },
+  {
+   "id": 34,
+   "name": "lẩu",
+   "en": "hotpot",
+   "aliases": [
+    "lẩu thái"
+   ],
+   "group": "dish",
+   "supercategory": "soup_pot",
+   "visual": {
+    "definition": "nồi kim loại lớn đặt giữa bàn, nước dùng nhiều nguyên liệu và rau nổi trên mặt",
+    "units": [
+     "nồi"
+    ],
+    "attrs": [
+     "nồi lớn đặt giữa bàn",
+     "nước dùng màu đỏ cam hoặc trong",
+     "nhiều rau và nguyên liệu nổi trên mặt",
+     "nồi kim loại"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "canh",
+     "cue": "nồi kim loại lớn giữa bàn"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "lẩu",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 31,
+     "boxes": 36
+    },
+    "val": {
+     "images": 4,
+     "boxes": 5
+    },
+    "test": {
+     "images": 5,
+     "boxes": 5
+    }
+   }
+  },
+  {
+   "id": 35,
+   "name": "mì Quảng",
+   "en": "quang noodles",
+   "aliases": [
+    "mỳ Quảng"
+   ],
+   "group": "dish",
+   "supercategory": "noodle_soup",
+   "visual": {
+    "definition": "tô sợi dẹt màu vàng ít nước dùng màu cam, có trứng cút, lạc rang và bánh đa bẻ nhỏ",
+    "units": [
+     "tô",
+     "bát"
+    ],
+    "attrs": [
+     "sợi dẹt màu vàng",
+     "ít nước dùng màu cam",
+     "trứng cút và lạc rang",
+     "miếng bánh đa vàng bẻ nhỏ"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "cao lầu",
+     "cue": "sợi dẹt vàng, trứng cút, bánh đa bẻ nhỏ"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "mì Quảng",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 176,
+     "boxes": 225
+    },
+    "val": {
+     "images": 22,
+     "boxes": 29
+    },
+    "test": {
+     "images": 22,
+     "boxes": 24
+    }
+   }
+  },
+  {
+   "id": 36,
+   "name": "mực",
+   "en": "squid",
+   "aliases": [
+    "mực xào",
+    "mực nướng"
+   ],
+   "group": "dish",
+   "supercategory": "seafood",
+   "visual": {
+    "definition": "thân màu trắng hồng, khoanh tròn hoặc nguyên con có râu dài cong",
+    "units": [
+     "đĩa",
+     "phần"
+    ],
+    "multi_units": [
+     "phần"
+    ],
+    "attrs": [
+     "thân màu trắng hồng",
+     "khoanh tròn hoặc nguyên con",
+     "râu dài cong",
+     "xào với hành và ớt"
+    ]
+   },
+   "confusable_with": [],
+   "ov_split": "base",
+   "nutrition_key": "mực",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 73,
+     "boxes": 132
+    },
+    "val": {
+     "images": 10,
+     "boxes": 14
+    },
+    "test": {
+     "images": 10,
+     "boxes": 22
+    }
+   }
+  },
+  {
+   "id": 37,
+   "name": "nem chua",
+   "en": "fermented pork",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "meat",
+   "visual": {
+    "definition": "khối nhỏ hình chữ nhật bọc lá chuối, mặt cắt màu hồng đỏ, buộc dây hoặc lạt",
+    "units": [
+     "phần",
+     "đĩa"
+    ],
+    "multi_units": [
+     "phần"
+    ],
+    "attrs": [
+     "bọc lá chuối xanh",
+     "khối nhỏ hình chữ nhật",
+     "mặt cắt màu hồng đỏ",
+     "buộc dây đỏ hoặc lạt"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "gỏi cuốn",
+     "cue": "khối nhỏ bọc lá chuối, mặt cắt hồng đỏ"
+    },
+    {
+     "name": "chả giò",
+     "cue": "khối nhỏ hình chữ nhật buộc dây"
+    }
+   ],
+   "ov_split": "novel",
+   "nutrition_key": "nem chua",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 52,
+     "boxes": 257
+    },
+    "val": {
+     "images": 7,
+     "boxes": 33
+    },
+    "test": {
+     "images": 7,
+     "boxes": 42
+    }
+   }
+  },
+  {
+   "id": 38,
+   "name": "ngao sò",
+   "en": "clams and scallops",
+   "aliases": [
+    "nghêu",
+    "sò"
+   ],
+   "group": "dish",
+   "supercategory": "seafood",
+   "visual": {
+    "definition": "vỏ hai mảnh màu trắng xám có gân sọc, mở miệng lộ thịt bên trong",
+    "units": [
+     "đĩa",
+     "phần"
+    ],
+    "multi_units": [
+     "phần"
+    ],
+    "attrs": [
+     "vỏ hai mảnh màu trắng xám",
+     "vỏ có gân sọc",
+     "mở miệng lộ thịt bên trong",
+     "nằm trong nước dùng có sả"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "ốc",
+     "cue": "vỏ hai mảnh có gân sọc"
+    },
+    {
+     "name": "hàu",
+     "cue": "vỏ nhỏ hai mảnh trắng xám"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "ngao sò",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 57,
+     "boxes": 100
+    },
+    "val": {
+     "images": 8,
+     "boxes": 12
+    },
+    "test": {
+     "images": 7,
+     "boxes": 17
+    }
+   }
+  },
+  {
+   "id": 39,
+   "name": "phở",
+   "en": "pho noodle soup",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "noodle_soup",
+   "visual": {
+    "definition": "tô sợi bánh dẹt trắng trong nước dùng trong, lát thịt mỏng và hành lá thái nhỏ",
+    "units": [
+     "tô",
+     "bát"
+    ],
+    "attrs": [
+     "sợi bánh dẹt trắng",
+     "nước dùng trong",
+     "lát thịt mỏng màu nâu hồng",
+     "hành lá xanh thái nhỏ trên mặt"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "hủ tiếu",
+     "cue": "sợi bánh dẹt trắng, lát thịt mỏng"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "phở",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 121,
+     "boxes": 180
+    },
+    "val": {
+     "images": 16,
+     "boxes": 22
+    },
+    "test": {
+     "images": 15,
+     "boxes": 18
+    }
+   }
+  },
+  {
+   "id": 40,
+   "name": "rau sống",
+   "en": "fresh herbs and greens",
+   "aliases": [],
+   "group": "side",
+   "supercategory": "vegetable",
+   "visual": {
+    "definition": "nhiều loại lá xanh tươi xếp đầy đĩa hoặc rổ, lẫn giá đỗ trắng",
+    "units": [
+     "đĩa",
+     "rổ"
+    ],
+    "attrs": [
+     "nhiều loại lá",
+     "lẫn giá đỗ trắng",
+     "xếp đầy kín",
+     "lá xanh đậm và xanh nhạt"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "gỏi",
+     "cue": "lá nguyên xanh tươi xếp đầy"
+    },
+    {
+     "name": "rau luộc",
+     "cue": "lá tươi nhiều loại"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "rau sống",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 1040,
+     "boxes": 1210
+    },
+    "val": {
+     "images": 130,
+     "boxes": 146
+    },
+    "test": {
+     "images": 131,
+     "boxes": 154
+    }
+   }
+  },
+  {
+   "id": 41,
+   "name": "súp cua",
+   "en": "crab soup",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "soup_pot",
+   "visual": {
+    "definition": "chén súp sánh màu trắng đục có trứng cút, sợi nấm đen và lá ngò",
+    "units": [
+     "bát",
+     "chén"
+    ],
+    "attrs": [
+     "súp sánh màu trắng đục",
+     "trứng cút trắng",
+     "sợi nấm đen",
+     "rắc lá ngò xanh và tiêu"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "cháo lòng",
+     "cue": "súp trắng đục, trứng cút, sợi nấm"
+    },
+    {
+     "name": "cua",
+     "cue": "chén súp sánh trắng đục"
+    }
+   ],
+   "ov_split": "novel",
+   "nutrition_key": "súp cua",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 57,
+     "boxes": 147
+    },
+    "val": {
+     "images": 7,
+     "boxes": 35
+    },
+    "test": {
+     "images": 7,
+     "boxes": 11
+    }
+   }
+  },
+  {
+   "id": 42,
+   "name": "thịt bò",
+   "en": "beef dish",
+   "aliases": [
+    "bò xào",
+    "bò tái"
+   ],
+   "group": "dish",
+   "supercategory": "meat",
+   "visual": {
+    "definition": "lát thịt mỏng màu nâu đỏ có vân mỡ trắng, sống hoặc xào với hành tây",
+    "units": [
+     "phần",
+     "đĩa"
+    ],
+    "multi_units": [
+     "phần"
+    ],
+    "attrs": [
+     "lát thịt màu nâu đỏ",
+     "thái mỏng",
+     "vân mỡ trắng",
+     "xào với hành tây"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "heo quay",
+     "cue": "lát mỏng nâu đỏ, vân mỡ trắng"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "thịt bò",
+   "label_notes": "Gồm bò sống thái lát, bò xào, bò kho; thường là lát bò trong tô phở.",
+   "stats": {
+    "train": {
+     "images": 53,
+     "boxes": 60
+    },
+    "val": {
+     "images": 7,
+     "boxes": 7
+    },
+    "test": {
+     "images": 7,
+     "boxes": 11
+    }
+   }
+  },
+  {
+   "id": 43,
+   "name": "rau luộc",
+   "en": "boiled vegetables",
+   "aliases": [],
+   "group": "side",
+   "supercategory": "vegetable",
+   "visual": {
+    "definition": "rau xanh đậm bóng nước, xếp gọn trên đĩa",
+    "units": [
+     "đĩa",
+     "phần"
+    ],
+    "multi_units": [
+     "phần"
+    ],
+    "attrs": [
+     "rau xanh đậm luộc chín",
+     "lá rau bóng nước",
+     "xếp gọn trên đĩa",
+     "màu xanh thẫm"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "rau sống",
+     "cue": "rau chín xanh đậm bóng nước"
+    },
+    {
+     "name": "rau xào",
+     "cue": "bóng nước, không dầu"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "rau luộc",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 58,
+     "boxes": 68
+    },
+    "val": {
+     "images": 9,
+     "boxes": 10
+    },
+    "test": {
+     "images": 8,
+     "boxes": 8
+    }
+   }
+  },
+  {
+   "id": 44,
+   "name": "tôm",
+   "en": "shrimp",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "seafood",
+   "visual": {
+    "definition": "con thân cong màu cam đỏ vỏ bóng, râu dài, xếp nhiều con trên đĩa",
+    "units": [
+     "phần",
+     "đĩa"
+    ],
+    "multi_units": [
+     "con",
+     "phần"
+    ],
+    "attrs": [
+     "thân cong màu cam đỏ",
+     "vỏ bóng",
+     "râu dài",
+     "xếp nhiều con trên đĩa"
+    ]
+   },
+   "confusable_with": [],
+   "ov_split": "base",
+   "nutrition_key": "tôm",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 160,
+     "boxes": 259
+    },
+    "val": {
+     "images": 20,
+     "boxes": 34
+    },
+    "test": {
+     "images": 21,
+     "boxes": 34
+    }
+   }
+  },
+  {
+   "id": 45,
+   "name": "xôi",
+   "en": "sticky rice",
+   "aliases": [
+    "xôi xéo",
+    "xôi gấc"
+   ],
+   "group": "dish",
+   "supercategory": "rice",
+   "visual": {
+    "definition": "đĩa hạt nếp dính thành khối màu trắng hoặc vàng, thường rắc hành phi",
+    "units": [
+     "đĩa",
+     "phần"
+    ],
+    "multi_units": [
+     "phần"
+    ],
+    "attrs": [
+     "hạt nếp dính thành khối",
+     "hạt nếp màu trắng hoặc vàng",
+     "rắc hành phi vàng",
+     "đắp thành đĩa hoặc nắm"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "cơm chiên",
+     "cue": "hạt nếp dính thành khối"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "xôi xéo",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 137,
+     "boxes": 185
+    },
+    "val": {
+     "images": 19,
+     "boxes": 27
+    },
+    "test": {
+     "images": 16,
+     "boxes": 25
+    }
+   }
+  },
+  {
+   "id": 46,
+   "name": "ốc",
+   "en": "sea snails",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "seafood",
+   "visual": {
+    "definition": "vỏ xoắn màu nâu có đốm, nhiều con trong đĩa",
+    "units": [
+     "đĩa",
+     "phần"
+    ],
+    "multi_units": [
+     "phần"
+    ],
+    "attrs": [
+     "vỏ xoắn",
+     "vỏ màu nâu có đốm",
+     "nhiều con trong đĩa",
+     "xào với sả và ớt"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "ngao sò",
+     "cue": "vỏ xoắn có đốm"
+    }
+   ],
+   "ov_split": "novel",
+   "nutrition_key": "ốc",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 85,
+     "boxes": 196
+    },
+    "val": {
+     "images": 11,
+     "boxes": 11
+    },
+    "test": {
+     "images": 11,
+     "boxes": 20
+    }
+   }
+  },
+  {
+   "id": 47,
+   "name": "món ăn khác",
+   "en": "other dish",
+   "aliases": [],
+   "group": "catch_all",
+   "supercategory": "other",
+   "visual": {
+    "definition": "món không thuộc các lớp đã đặt tên; hình dạng đa dạng",
+    "units": [
+     ""
+    ],
+    "attrs": []
+   },
+   "confusable_with": [],
+   "ov_split": "base",
+   "nutrition_key": "món ăn khác",
+   "label_notes": "Lớp gom: nhìn rất đa dạng, không có thuộc tính hình thái chung.",
+   "stats": {
+    "train": {
+     "images": 292,
+     "boxes": 487
+    },
+    "val": {
+     "images": 40,
+     "boxes": 65
+    },
+    "test": {
+     "images": 40,
+     "boxes": 65
+    }
+   }
+  },
+  {
+   "id": 48,
+   "name": "rau xào",
+   "en": "stir-fried vegetables",
+   "aliases": [],
+   "group": "side",
+   "supercategory": "vegetable",
+   "visual": {
+    "definition": "rau xanh thái khúc bóng dầu, lẫn tỏi phi",
+    "units": [
+     "đĩa",
+     "phần"
+    ],
+    "multi_units": [
+     "phần"
+    ],
+    "attrs": [
+     "rau xanh bóng dầu",
+     "thái khúc",
+     "lẫn tỏi phi",
+     "xếp trên đĩa"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "rau luộc",
+     "cue": "bóng dầu, lẫn tỏi phi"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "rau xào",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 78,
+     "boxes": 88
+    },
+    "val": {
+     "images": 10,
+     "boxes": 12
+    },
+    "test": {
+     "images": 10,
+     "boxes": 11
+    }
+   }
+  },
+  {
+   "id": 49,
+   "name": "đồ chấm",
+   "en": "dipping sauce",
+   "aliases": [
+    "nước chấm",
+    "nước mắm",
+    "mắm tôm"
+   ],
+   "group": "sauce",
+   "supercategory": "sauce",
+   "visual": {
+    "definition": "chén nhỏ nước màu nâu đỏ hoặc vàng, có lát ớt đỏ hoặc tỏi băm",
+    "units": [
+     "chén",
+     "bát nhỏ"
+    ],
+    "attrs": [
+     "nước màu nâu đỏ hoặc vàng",
+     "lát ớt đỏ nổi trên mặt",
+     "lẫn tỏi băm"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "canh",
+     "cue": "chén nhỏ nước màu, lát ớt hoặc tỏi"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "nước chấm",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 1297,
+     "boxes": 1940
+    },
+    "val": {
+     "images": 164,
+     "boxes": 243
+    },
+    "test": {
+     "images": 162,
+     "boxes": 233
+    }
+   }
+  },
+  {
+   "id": 50,
+   "name": "gà quay",
+   "en": "roasted chicken",
+   "aliases": [
+    "gà nướng"
+   ],
+   "group": "dish",
+   "supercategory": "meat",
+   "visual": {
+    "definition": "miếng gà da nâu đỏ bóng dầu, nguyên đùi hoặc chặt miếng lớn",
+    "units": [
+     "phần",
+     "đĩa"
+    ],
+    "multi_units": [
+     "phần"
+    ],
+    "attrs": [
+     "da màu nâu đỏ bóng",
+     "nguyên đùi hoặc miếng lớn",
+     "bề mặt bóng dầu",
+     "chặt miếng"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "gà luộc",
+     "cue": "da nâu đỏ bóng"
+    },
+    {
+     "name": "heo quay",
+     "cue": "miếng có xương gà, da nâu đỏ bóng"
+    },
+    {
+     "name": "cá chiên",
+     "cue": "nguyên đùi hoặc miếng gà"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "gà quay",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 80,
+     "boxes": 126
+    },
+    "val": {
+     "images": 10,
+     "boxes": 13
+    },
+    "test": {
+     "images": 12,
+     "boxes": 22
+    }
+   }
+  },
+  {
+   "id": 51,
+   "name": "nem rán",
+   "en": "fried spring rolls",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "roll_salad",
+   "visual": {
+    "definition": "cuốn dài chiên màu vàng nâu vỏ phồng rộp, cắt khúc lộ nhân",
+    "units": [
+     "phần",
+     "đĩa"
+    ],
+    "multi_units": [
+     "phần"
+    ],
+    "attrs": [
+     "cuốn dài màu vàng nâu",
+     "vỏ phồng rộp",
+     "cắt khúc",
+     "lộ nhân bên trong"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "gỏi cuốn",
+     "cue": "vỏ chiên vàng nâu phồng rộp"
+    },
+    {
+     "name": "chả giò",
+     "cue": "cuốn chiên vàng nâu"
+    },
+    {
+     "name": "quẩy",
+     "cue": "cuốn có nhân, cắt khúc"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": null,
+   "label_notes": "Cuốn chiên vàng (miền Nam gọi là chả giò). Không gộp với lớp chả giò.",
+   "stats": {
+    "train": {
+     "images": 63,
+     "boxes": 179
+    },
+    "val": {
+     "images": 8,
+     "boxes": 31
+    },
+    "test": {
+     "images": 8,
+     "boxes": 12
+    }
+   }
+  },
+  {
+   "id": 52,
+   "name": "món tráng miệng",
+   "en": "dessert",
+   "aliases": [
+    "trái cây",
+    "chè"
+   ],
+   "group": "catch_all",
+   "supercategory": "other",
+   "visual": {
+    "definition": "trái cây cắt miếng, chè trong cốc hoặc bánh nhỏ; hình dạng đa dạng",
+    "units": [
+     "phần"
+    ],
+    "attrs": []
+   },
+   "confusable_with": [],
+   "ov_split": "base",
+   "nutrition_key": null,
+   "label_notes": "Lớp gom: trái cây, chè, bánh ngọt; không có thuộc tính hình thái chung.",
+   "stats": {
+    "train": {
+     "images": 57,
+     "boxes": 73
+    },
+    "val": {
+     "images": 7,
+     "boxes": 7
+    },
+    "test": {
+     "images": 8,
+     "boxes": 12
+    }
+   }
+  },
+  {
+   "id": 53,
+   "name": "quẩy",
+   "en": "fried dough sticks",
+   "aliases": [
+    "giò cháo quẩy"
+   ],
+   "group": "dish",
+   "supercategory": "banh",
+   "visual": {
+    "definition": "thanh bột chiên màu vàng dài và phồng, hai thanh dính nhau",
+    "units": [
+     "phần",
+     "đĩa"
+    ],
+    "multi_units": [
+     "phần"
+    ],
+    "attrs": [
+     "thanh bột chiên màu vàng",
+     "hai thanh dính nhau",
+     "dài và phồng",
+     "xếp nhiều thanh"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "nem rán",
+     "cue": "thanh bột phồng rỗng, hai thanh dính nhau"
+    }
+   ],
+   "ov_split": "novel",
+   "nutrition_key": null,
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 77,
+     "boxes": 83
+    },
+    "val": {
+     "images": 10,
+     "boxes": 11
+    },
+    "test": {
+     "images": 10,
+     "boxes": 12
+    }
+   }
+  }
+ ]
+}

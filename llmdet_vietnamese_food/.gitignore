@@ -8,3 +8,10 @@ __pycache__/
 *.pth
 *.pt
 *.bin
+work_dirs/
+demo_output/
+.cache_vlm/
+*.log
+demo_vlm_result.jpg
+.env
+.gemini_key

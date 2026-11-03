@@ -200,6 +200,15 @@ class ODVGDataset(BaseDetDataset):
                         instances.append(instance)
                 data_info['instances'] = instances
                 data_info['phrases'] = phrases
+                # Nhiều biến thể caption cho cùng bộ box (ViFood-54, Pha 2): regions của mọi biến thể
+                # cùng thứ tự với `regions`, chỉ khác tokens_positive. SampleCaptionVariant chọn mỗi lần load.
+                if anno.get('variants'):
+                    data_info['caption_variants'] = [{
+                        'text': v['caption'],
+                        'tokens': [r['tokens_positive'] for r in v['regions']],
+                        'flip_text': v['flip_caption'],
+                        'flip_tokens': [r['tokens_positive'] for r in v['flip_regions']],
+                    } for v in anno['variants']]
                 data_info['dataset_mode'] = self.actual_dataset_mode
                 out_data_list.append(data_info)
 
