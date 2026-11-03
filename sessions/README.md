@@ -30,6 +30,7 @@ Thư mục này lưu trữ chi tiết tiến độ công việc kỹ thuật đ�
 | **31/10/2026** | **Session 19** | Nhãn sửa qua crops_review; taxonomy v2 (trường visual, supercategory, confusable_with, ov_split, nutrition_key); build lại Pha 0/2 giữ split; train lại B1 | [2026-10-31_relabel_taxonomy_v2.md](2026-10-31_relabel_taxonomy_v2.md) |
 | **31/10/2026** | **Session 20** | Pha 3: loader caption VG (biến thể + bản lật, negative khó từ confusable_with), config B3 trộn OD+VG, chạy B3 | [2026-10-31_phase3_b3.md](2026-10-31_phase3_b3.md) |
 | **01/11/2026** | **Session 21** | Grounding câu (B3 L2 R@1 0.774 vs B1-v2 0.363), B3b tốt nhất (mAP 0.323); thí nghiệm OV base/novel | [2026-10-31_phase3_b3.md](2026-10-31_phase3_b3.md) · [2026-11-01_ov_experiment.md](2026-11-01_ov_experiment.md) |
+| **03/11/2026** | **Session 22** | Pha 6: demo ViFood-54 (54 lớp, B3b, tìm món theo câu, dinh dưỡng 54 món) | [2026-11-03_phase6_app_vifood54.md](2026-11-03_phase6_app_vifood54.md) |
 
 ---
 

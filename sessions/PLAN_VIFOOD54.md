@@ -205,7 +205,7 @@ Inference-only (không tốn train): per-class + nhầm lẫn cho B0/B1/B3, grou
 
 ---
 
-## 10. PHA 6 — CẬP NHẬT DEMO & DINH DƯỠNG · ~1 ngày
+## 10. PHA 6 — CẬP NHẬT DEMO & DINH DƯỠNG · ✅ XONG 03/11 (`app_vifood54.py`, cổng 7862; xem `sessions/2026-11-03_phase6_app_vifood54.md`)
 
 - `nutrition_vifood_51.json` → `nutrition_vifood54.json`: đổi tên (`bún→bún tươi`, `nước chấm→đồ chấm`, `chả→chả giò`, `xôi xéo→xôi`, `canh chua→canh`), thêm `nem rán`, `quẩy`, `món tráng miệng`.
 - `vlm_discovery.py`: `CANONICAL_51_DISHES` → đọc từ `taxonomy.json`.

@@ -1,0 +1,51 @@
+[
+ [
+  "grounding_data/vifood54/images/vifood/srcB_1015_jpg.rf.9b3d4ef8bbc715ff7ae3bfd60f2dd571.jpg",
+  [
+   "bánh xèo",
+   "rau sống",
+   "đồ chấm"
+  ],
+  "Hai rổ rau sống nằm ở bên trái và bên phải, nhiều loại lá. Ở bên trái và góc dưới bên phải có hai chiếc bánh xèo, gấp đôi hình bán nguyệt, mép bánh vàng nâu. Một chén đồ chấm nằm ở góc dưới bên trái, lẫn tỏi băm, lát ớt đỏ nổi trên mặt."
+ ],
+ [
+  "grounding_data/vifood54/images/vifood/srcB_137_jpg.rf.6afbc9e82961cd57a2562d79013e25a5.jpg",
+  [
+   "nem chua",
+   "rau sống"
+  ],
+  "Ở bên trái có một rổ rau sống lớn, nhiều loại lá. Năm phần nem chua nằm rải rác trên bàn, khối nhỏ hình chữ nhật."
+ ],
+ [
+  "grounding_data/vifood54/images/vifood/srcB_233_jpg.rf.045e738660fbf6804d7aa0c3c5db9d92.jpg",
+  [
+   "bánh bột lọc",
+   "đồ chấm"
+  ],
+  "Ở chính giữa và phía dưới có hai phần bánh bột lọc, lộ nhân màu cam đỏ bên trong. Bên phải là một bát nhỏ đồ chấm, lát ớt đỏ nổi trên mặt."
+ ],
+ [
+  "grounding_data/vifood54/images/vifood/srcB_303_jpg.rf.ce0d47a1b60c342be8c2a5e8098e415d.jpg",
+  [
+   "bánh khọt",
+   "đồ chấm"
+  ],
+  "Nhiều chiếc bánh khọt nằm rải rác trên bàn, bánh tròn nhỏ màu vàng. Ở góc trên bên phải có một bát nhỏ đồ chấm, nước màu nâu đỏ hoặc vàng."
+ ],
+ [
+  "grounding_data/vifood54/images/vifood/srcB_476_jpg.rf.b1d173acde7982779571cfb997799b40.jpg",
+  [
+   "bánh bèo",
+   "đồ chấm"
+  ],
+  "Rải rác trên bàn có nhiều chén bánh bèo, lớp bột trắng mỏng, điểm mỡ hành xanh. Hai chén đồ chấm nằm ở chính giữa và phía dưới, lát ớt đỏ nổi trên mặt, nước màu nâu đỏ hoặc vàng."
+ ],
+ [
+  "grounding_data/vifood54/images/vifood/srcB_496_jpg.rf.3cf147bf39d394a83b7530af4c5eaa5f.jpg",
+  [
+   "bánh tráng",
+   "đồ chấm"
+  ],
+  "Ba phần bánh tráng nằm rải rác trên bàn, nướng phủ trứng và hành trên mặt. Phía trên là một bát nhỏ đồ chấm, lẫn tỏi băm."
+ ]
+]
