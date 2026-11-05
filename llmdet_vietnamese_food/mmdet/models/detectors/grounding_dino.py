@@ -968,11 +968,12 @@ class GroundingDINO(DINO):
                         selected_queries.append(features)
                         query_lens.append(len(features))
                     
-                    selected_boxes = torch.cat(selected_boxes).unsqueeze(1) # (total_queries, 1, 4)
-                    selected_queries = torch.cat(selected_queries).unsqueeze(1)
+                    # batch không có region nào (ảnh không box, vd ảnh chỉ có món novel ở OV-W): cat list rỗng sẽ lỗi
                     if len(selected_queries) == 0:
                         losses[f'd{i}.loss_lmm_region'] = torch.sum(head_inputs_dict['hidden_states'][-i]) * 0
                         continue
+                    selected_boxes = torch.cat(selected_boxes).unsqueeze(1)  # (total_queries, 1, 4)
+                    selected_queries = torch.cat(selected_queries).unsqueeze(1)  # (total_queries, 1, 256)
 
                     cross_attention_input = None
                     if self.use_lmm_cross_attn:
