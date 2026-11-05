@@ -185,7 +185,9 @@ Chỉ còn **3 run train mới** sau B1 (B3, OV, và B5 nếu có điều kiện
 | B1-v2 | Sửa nhãn (crops_review) có giúp không? Cùng config B1, nhãn mới, cùng split | `..._vifood54_b1_od.py` → `work_dirs/vifood54_b1_od_v2` | — | ✅ test 0.315 (B1 cũ trên test mới cũng 0.315) |
 | B3 | Caption hình thái + bố cục (L1+L2 trộn, biến thể ngẫu nhiên) có giúp thêm không? | `..._b3_od_vg.py` → `work_dirs/vifood54_b3_od_vg` | so với B1-v2 | ⚖️ mAP 0.220 < 0.315 nhưng grounding câu L2 R@1 0.774 vs B1-v2 0.363 (`EVAL_GROUNDING.md`) |
 | B3b | Fine-tune từ B1-v2 bằng OD+VG: giữ mAP mà vẫn có grounding câu? | `..._b3b_ft.py` → `work_dirs/vifood54_b3b_ft` (8k iter, lr 2e-5) | sau grounding test | ✅ **tốt nhất**: test mAP 0.323 (B1-v2 0.315), grounding L2 R@1 0.663 (B1-v2 0.363, B3 0.774); best iter 6000, run dừng ở 7550/8000 do lỗi CIFS "Too many open files" |
-| B5 | Caption dài/vùng qua LMM có giúp thêm không? | `..._b5_lmm.py` | **chỉ khi B3 > B1** | ⬜ |
+| B5 | Giám sát LLM (caption ảnh VLM đã duyệt + caption vùng) có giúp thêm không? | `..._b5_lmm.py` (= B3b + lmm) | **cổng cũ "chỉ khi B3 > B1" đã bỏ (05/11)** — đây là thành phần cốt lõi của LLMDet; so với B3b | ⬜ code xong, chờ caption (`sessions/2026-11-05_phase5_lmm_setup.md`) |
+| B0-LLMDet / B1-L | Checkpoint LLMDet (GroundingCap-1M) có tốt hơn MM-GDINO? | `run_llmdet_base.sh` | — | ⬜ |
+| OV-W | Tên món novel chỉ có trong caption (không box) có giúp nhận món mới? | `..._ov_s2_lmm.py` (+ `_nonovel`) | sau caption | ⬜ |
 | OV | Có tổng quát sang món chưa thấy không? | `..._ov_s1_od.py` (16k, base) → `..._ov_s2_od_vg.py` (8k, như B3b); split `annotations_ov/` | sau B3b | ✅ AP_novel: vi 0.048, en 0.082 (tốt nhất), mô tả 0.021; caption (S2) không giúp OV; B0 0.010, trần trên 0.419 (`EVAL_OV.md`, `EVAL_OV_PROMPTS.md`) |
 
 Inference-only (không tốn train): per-class + nhầm lẫn cho B0/B1/B3, grounding câu tự nhiên, caption hương vị vs hình thái.

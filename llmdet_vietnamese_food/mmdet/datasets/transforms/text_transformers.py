@@ -1,5 +1,6 @@
 # Copyright (c) OpenMMLab. All rights reserved.
 import json
+from typing import Optional
 
 from mmcv.transforms import BaseTransform
 
@@ -415,23 +416,32 @@ class RandomSamplingNegPos2(BaseTransform):
         ori_conv = copy.deepcopy(results['conversations'])
         results['conversations'] = self.get_LMM_input('image', results['conversations'])
         results['ori_conv'] = ori_conv
+        is_vg = 'phrases' in results
+        # OD: label map (class id -> tên) phải lấy TRƯỚC od_aug vì od_aug ghi đè results['text'] bằng prompt
+        name_map = None if is_vg else dict(results['text'] if 'text' in results else self.label_map)
+        results = self.vg_aug(results) if is_vg else self.od_aug(results)
         if self.num_region_caption > 0:
-            box_index = torch.randperm(len(results['gt_bboxes_labels']))[:self.num_region_caption]
-            region_conversations = []
-            region_index = results['gt_bboxes_labels'][box_index.numpy()]
-            for idx in region_index:
-                try:
-                    phrase = random.choice(results['phrases'][idx]['phrase']) if type(results['phrases'][idx]['phrase']) is list else results['phrases'][idx]['phrase']
-                except:
-                    phrase = 'object'
-                conv = self.get_LMM_input('region', [{"from": "human", "value": "<image>\nDescribe the region in a phrase."}, {"from": "gpt", "value": clean_phrase(phrase)}])
-                region_conversations.append(conv)
-            results['region_conversations'] = {'box_index': box_index, 'conversations': region_conversations}
-            
-        if 'phrases' in results:
-            return self.vg_aug(results)
-        else:
-            return self.od_aug(results)
+            # Chọn region SAU aug: class dropout / tràn token đã bỏ box, box_index phải trỏ vào gt cuối cùng
+            results['region_conversations'] = self._region_conversations(results, name_map)
+        return results
+
+    def _region_conversations(self, results: dict, name_map: Optional[dict]) -> dict:
+        """Hội thoại vùng cho LMM: mỗi box được chọn -> tên món (OD) hoặc phrase của region (VG)."""
+        # OD: gt_bboxes_labels đã remap theo prompt -> dùng class id gốc od_aug lưu lại
+        class_ids = results.pop('gt_class_ids', results['gt_bboxes_labels'])
+        box_index = torch.randperm(len(class_ids))[:self.num_region_caption]
+        conversations = []
+        for i in box_index.tolist():
+            label = int(class_ids[i])
+            if name_map is None:
+                phrase = results['phrases'][label]['phrase']
+                phrase = random.choice(phrase) if isinstance(phrase, list) else phrase
+            else:
+                phrase = random.choice(name_map[str(label)].split('/')).strip()
+            conversations.append(self.get_LMM_input('region', [
+                {'from': 'human', 'value': '<image>\nDescribe the region in a phrase.'},
+                {'from': 'gpt', 'value': clean_phrase(phrase)}]))
+        return {'box_index': box_index, 'conversations': conversations}
 
     def vg_aug(self, results):
         gt_bboxes = results['gt_bboxes']
@@ -583,6 +593,7 @@ class RandomSamplingNegPos2(BaseTransform):
             generate_senetence_given_labels(positive_label_list,
                                             negative_label_list, text)
 
+        results['gt_class_ids'] = np.asarray(gt_labels).copy()  # cho _region_conversations (trước remap)
         # label remap
         if len(gt_labels) > 0:
             gt_labels = np.vectorize(lambda x: label_remap_dict[x])(gt_labels)
