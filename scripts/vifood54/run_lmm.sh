@@ -36,7 +36,7 @@ if [ "${SMOKE:-0}" = 1 ]; then
   echo "SMOKE xong: kiểm tra loss_lmm_image / d1.loss_lmm_region trong log và VRAM"; exit 0
 fi
 
-[ -f "$WD/iter_8000.pth" ] || python mmdet_train.py "$CFG" --work-dir "$WD" --amp "${EXTRA[@]}" \
+[ -f "$WD/iter_16000.pth" ] || python mmdet_train.py "$CFG" --work-dir "$WD" --amp "${EXTRA[@]}" \
   || echo "!! train dừng sớm, dùng checkpoint tốt nhất"
 BEST=$(best "$WD"); [ -n "$BEST" ] || { echo "không có checkpoint"; exit 1; }
 DET="$WD/best_det.pth"

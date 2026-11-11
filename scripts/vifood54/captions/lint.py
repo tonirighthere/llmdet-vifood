@@ -27,15 +27,23 @@ def _word_re(w):
     return re.compile(r'(?<!\w)' + re.escape(w) + r'(?!\w)')
 
 
-_TASTE_RE = [(w, _word_re(w)) for w in TASTE_WORDS]
-_ALLOW_RE = [_word_re(w) for w in TASTE_ALLOW]
+# Bản tiếng Anh (build_captions_en.py)
+TASTE_WORDS_EN = [
+    'delicious', 'tasty', 'yummy', 'flavor', 'flavour', 'flavorful', 'aroma', 'aromatic', 'fragrant', 'smell',
+    'spicy', 'sweet', 'sour', 'salty', 'savory', 'bitter', 'rich', 'crispy', 'crunchy', 'tender', 'chewy', 'juicy',
+    'soft', 'mouth-watering', 'appetizing', 'tempting', 'hot', 'warm', 'cold', 'cozy', 'homemade', 'traditional',
+    'authentic', 'specialty', 'famous', 'favorite', 'perfect', 'beautiful', 'nice',
+]
+TASTE_ALLOW_EN = ['sweet potato', 'hot pot', 'hotpot']
 
 
 class CaptionLinter:
-    def __init__(self, tokenizer, class_names, max_tokens=160):
+    def __init__(self, tokenizer, class_names, max_tokens=160, taste_words=TASTE_WORDS, taste_allow=TASTE_ALLOW):
         self.tok = tokenizer
         self.max_tokens = max_tokens
         self.class_pieces = {n: tokenizer.tokenize(n) for n in class_names}
+        self.taste_re = [(w, _word_re(w)) for w in taste_words]
+        self.allow_re = [_word_re(w) for w in taste_allow]
 
     def tokens(self, text):
         enc = self.tok(text, add_special_tokens=False, return_offsets_mapping=True)
@@ -75,9 +83,9 @@ class CaptionLinter:
         for s, e, _ in spans:
             masked[s:e] = ' ' * (e - s)
         masked = ''.join(masked)
-        for r in _ALLOW_RE:
+        for r in self.allow_re:
             masked = r.sub(lambda m: ' ' * len(m.group()), masked)
-        for w, r in _TASTE_RE:
+        for w, r in self.taste_re:
             m = r.search(masked)
             if m:
                 errors.append(f'từ không nhìn thấy được: {w!r} @{m.start()}')

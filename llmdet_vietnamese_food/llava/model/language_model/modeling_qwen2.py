@@ -1195,7 +1195,11 @@ class Qwen2Model(Qwen2PreTrainedModel):
         else:
             raise ValueError("You have to specify either decoder_input_ids or decoder_inputs_embeds")
 
-        if self.gradient_checkpointing and self.training:
+        # LLMDet gọi lmm.eval() trước khi tính loss -> self.training=False; checkpoint_in_eval cho phép checkpoint
+        # từng lớp vẫn bật khi đang tính gradient (mmdet GroundingDINO, lmm_grad_ckpt=True)
+        use_ckpt = self.gradient_checkpointing and torch.is_grad_enabled() and (
+            self.training or getattr(self, 'checkpoint_in_eval', False))
+        if use_ckpt:
             if use_cache:
                 logger.warning_once(
                     "`use_cache=True` is incompatible with gradient checkpointing. Setting `use_cache=False`..."
@@ -1264,7 +1268,7 @@ class Qwen2Model(Qwen2PreTrainedModel):
             if output_hidden_states:
                 all_hidden_states += (hidden_states,)
 
-            if self.gradient_checkpointing and self.training:
+            if use_ckpt:
                 layer_outputs = self._gradient_checkpointing_func(
                     decoder_layer.__call__,
                     hidden_states,
@@ -1417,10 +1421,21 @@ class Qwen2ForCausalLM(Qwen2PreTrainedModel):
         )
 
         hidden_states = outputs[0]
+        loss = None
+        if labels is not None and getattr(self, 'sparse_logits_loss', False):
+            # Chỉ tính lm_head ở vị trí có nhãn (bỏ ~1130 token ảnh + prompt): cùng giá trị loss với nhánh dưới
+            # (CrossEntropy trung bình trên token != -100) nhưng không tạo logits [seq, 151936] fp32 cho cả chuỗi.
+            shift_labels = labels[..., 1:].to(hidden_states.device)
+            keep = shift_labels != -100
+            logits = self.lm_head(hidden_states[..., :-1, :][keep]).float()
+            loss = CrossEntropyLoss()(logits, shift_labels[keep])
+            if not return_dict:
+                return (loss, logits) + outputs[1:]
+            return CausalLMOutputWithPast(loss=loss, logits=logits, past_key_values=outputs.past_key_values,
+                                          hidden_states=outputs.hidden_states, attentions=outputs.attentions)
         logits = self.lm_head(hidden_states)
         logits = logits.float()
 
-        loss = None
         if labels is not None:
             # Shift so that tokens < n predict n
             shift_logits = logits[..., :-1, :].contiguous()

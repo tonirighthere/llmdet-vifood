@@ -13,7 +13,9 @@ ov_dir = '../grounding_data/vifood54/annotations_ov/'
 cap_suffix = '_lmm'
 num_region = 8
 
-model = dict(lmm=_base_.lmm_path, num_region_caption=num_region)
+# lmm_grad_ckpt + lmm_sparse_logits: checkpoint từng lớp Qwen2 + chỉ tính lm_head ở token có nhãn. Cùng loss
+# (fp32: lệch grad 1.4e-5), VRAM phần LMM / ảnh từ >5 GB xuống ~0.5-2 GB (đo 09/11, sessions/2026-11-09_english_pipeline.md)
+model = dict(lmm=_base_.lmm_path, num_region_caption=num_region, lmm_grad_ckpt=True, lmm_sparse_logits=True)
 
 od_dataset = _base_.od_dataset
 od_dataset['ann_file'] = ov_dir + f'train_od_rfs{cap_suffix}.jsonl'
@@ -34,4 +36,13 @@ optim_wrapper = dict(
         'lmm': dict(lr_mult=5.0),
         'connector': dict(lr_mult=5.0),
     }))
-default_hooks = dict(checkpoint=dict(max_keep_ckpts=1))
+# batch 1 × tích lũy 4 = batch hiệu dụng 4 như base (2 × 2), nhưng mỗi iter chỉ 1 ảnh -> cần GẤP ĐÔI iter để thấy cùng
+# số mẫu / số bước cập nhật (16k iter = 16k mẫu = 4000 bước, như 8k iter × batch 2). Mốc lr / val / checkpoint nhân 2.
+max_iter = 16000
+train_cfg = dict(max_iters=max_iter, val_interval=2000)
+param_scheduler = [
+    dict(type='LinearLR', start_factor=0.01, by_epoch=False, begin=0, end=400),
+    dict(type='MultiStepLR', begin=0, end=max_iter, by_epoch=False, milestones=[12000, 15000], gamma=0.1)
+]
+# checkpoint chứa cả Qwen (~1-2 GB/file) -> giữ ít
+default_hooks = dict(checkpoint=dict(interval=2000, max_keep_ckpts=1))

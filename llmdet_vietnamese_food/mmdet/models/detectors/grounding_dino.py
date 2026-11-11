@@ -371,6 +371,8 @@ class GroundingDINO(DINO):
                  use_constrast_conv=False,
                  fsdp=False,
                  num_region_caption=0,
+                 lmm_grad_ckpt=False,
+                 lmm_sparse_logits=False,
                  use_p5_input=True,
                  use_p4_input=True,
                  use_query_input=False,
@@ -427,6 +429,15 @@ class GroundingDINO(DINO):
             self.lmm = checkpoint_wrapper(self.lmm)
             self.lmm.requires_grad_(False)
             self.lmm.config.use_cache = False
+            # checkpoint_wrapper chỉ bọc forward(), nhưng loss gọi lmm.detection_forward() -> không có checkpoint nào;
+            # Qwen2 chỉ checkpoint khi training, mà loss gọi lmm.eval(). Hai cờ dưới giảm VRAM, không đổi giá trị loss.
+            if lmm_grad_ckpt:
+                import functools
+                import torch.utils.checkpoint as _cp
+                self.lmm.model.gradient_checkpointing = True
+                self.lmm.model._gradient_checkpointing_func = functools.partial(_cp.checkpoint, use_reentrant=False)
+                self.lmm.model.checkpoint_in_eval = True
+            self.lmm.sparse_logits_loss = lmm_sparse_logits
 
             if self.use_constrast_conv:
                 self.img_sep = nn.Embedding(1, self.lmm.config.hidden_size)

@@ -139,6 +139,8 @@ class ODVGDataset(BaseDetDataset):
                 data_info['conversations'] = data['conversations']
             else:
                 data_info['conversations'] = []
+            # Caption vùng cho loss LMM (ViFood-54, B5): {class id: cụm mô tả vùng}
+            data_info['region_captions'] = data.get('region_captions') or {}
             if 'tags' in data.keys():
                 data_info['tags'] = data['tags']
             else:
@@ -175,6 +177,12 @@ class ODVGDataset(BaseDetDataset):
 
                 instances = []
                 phrases = {}
+                # tên lớp -> caption vùng (region_captions khóa theo class id của detection)
+                name_to_rcap = {}
+                for inst in data.get('detection', {}).get('instances', []):
+                    rc = data_info['region_captions'].get(str(inst['label']))
+                    if rc and 'category' in inst:
+                        name_to_rcap[inst['category']] = rc
                 for i, region in enumerate(regions):
                     bbox = region['bbox']
                     phrase = region['phrase']
@@ -195,7 +203,8 @@ class ODVGDataset(BaseDetDataset):
                         instance['bbox_label'] = i
                         phrases[i] = {
                             'phrase': phrase,
-                            'tokens_positive': tokens_positive
+                            'tokens_positive': tokens_positive,
+                            'region_caption': name_to_rcap.get(phrase),
                         }
                         instances.append(instance)
                 data_info['instances'] = instances

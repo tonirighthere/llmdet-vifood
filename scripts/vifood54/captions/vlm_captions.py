@@ -16,6 +16,12 @@ nên không cần lint bỏ dấu; chỉ cần đúng sự thật (paper LLMDet,
        python scripts/vifood54/captions/vlm_captions.py attach                    # B5
        python scripts/vifood54/captions/vlm_captions.py attach --ov               # OV-W (caption có tên novel)
        python scripts/vifood54/captions/vlm_captions.py attach --ov --strip-novel # OV ablation (bỏ câu có tên novel)
+
+Tiếng Anh (pipeline EN, 09/11): đặt VIFOOD_LANG=en cho cả generate / review_captions.py / attach -> đọc và ghi trong
+annotations_en/ (tên lớp EN, prompt EN, lọc câu suy đoán / hương vị EN). Gemma nên tải sẵn vào huggingface/:
+       VIFOOD_LANG=en python scripts/vifood54/captions/vlm_captions.py generate --load-4bit \
+           --model huggingface/gemma-4-12B-it
+       VIFOOD_LANG=en python scripts/vifood54/captions/vlm_captions.py attach
 """
 from __future__ import annotations
 
@@ -30,13 +36,15 @@ from typing import Iterator, Optional
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
-ANN = os.path.join(ROOT, 'grounding_data/vifood54/annotations')
+LANG = os.environ.get('VIFOOD_LANG', 'vi')
+ANN = os.path.join(ROOT, 'grounding_data/vifood54/annotations' + ('_en' if LANG == 'en' else ''))
 ANN_OV = os.path.join(ROOT, 'grounding_data/vifood54/annotations_ov')
 RAW = os.path.join(ANN, 'vlm_captions.jsonl')
 REVIEWED = os.path.join(ANN, 'captions_reviewed.jsonl')
 sys.path.insert(0, HERE)
 from layout import group_instances  # noqa: E402
-from lint import TASTE_ALLOW, TASTE_WORDS  # noqa: E402
+from builder_en import location_en  # noqa: E402
+from lint import TASTE_ALLOW, TASTE_ALLOW_EN, TASTE_WORDS, TASTE_WORDS_EN  # noqa: E402
 
 PROMPT = """Đây là ảnh một bữa ăn Việt Nam. Các món đã được xác định chắc chắn trong ảnh (tên – số lượng – vị trí):
 {items}
@@ -50,6 +58,21 @@ Không suy đoán (không dùng "có lẽ", "dường như", "có thể là"). C
 SPECULATIVE = ['có lẽ', 'dường như', 'có vẻ', 'có thể là', 'hình như', 'gợi ý', 'cho thấy', 'chắc là', 'tạo cảm giác']
 TASTE = [w for w in TASTE_WORDS if w != 'vị'] + ['hương vị', 'đậm vị']  # 'vị' đơn lẻ trùng 'vị trí'
 REVIEW_STATUSES = ('approved', 'edited', 'rejected')
+
+PROMPT_EN = """This is a photo of a Vietnamese meal. These dishes are certainly in the image (name – count – position):
+{items}
+
+Write one detailed paragraph in English (5–8 sentences, about 80–150 words) describing what is VISIBLE in the image:
+- mention every dish above using EXACTLY the given name, with its container, colors, shape, visible ingredients and its
+  position relative to the other dishes;
+- you may describe the setting (table surface, chopsticks, spoons, glasses, napkins, lighting).
+Do not name any other dish. Do not mention taste, smell, texture (crispy, soft...), feelings or origin.
+Do not speculate (no "probably", "seems", "might be"). Return only the paragraph, no title, no bullet points."""
+SPECULATIVE_EN = ['probably', 'perhaps', 'possibly', 'likely', 'seems', 'seem', 'appears to', 'appear to', 'might',
+                  'may be', 'could be', 'suggests', 'suggesting', 'presumably', 'it looks like']
+TASTE_EN = [w for w in TASTE_WORDS_EN if w not in ('warm', 'cold', 'nice', 'beautiful')]  # 'warm lighting' hợp lệ
+if LANG == 'en':
+    PROMPT, SPECULATIVE, TASTE, TASTE_ALLOW = PROMPT_EN, SPECULATIVE_EN, TASTE_EN, TASTE_ALLOW_EN
 
 
 def _word_re(words: list[str]) -> re.Pattern:
@@ -82,7 +105,8 @@ class CaptionFilter:
     def __init__(self, classes: list[dict]):
         self.surface: dict[str, str] = {}
         for c in classes:
-            for s in [c['name']] + c.get('aliases', []):
+            # bản EN: aliases trong taxonomy vẫn là tên Việt -> chỉ khớp tên EN
+            for s in [c['name']] + (c.get('aliases', []) if LANG == 'vi' else []):
                 self.surface.setdefault(s.lower(), c['name'])
         self.dish_re = _word_re(list(self.surface))
         self.spec_re = _word_re(SPECULATIVE)
@@ -114,13 +138,15 @@ class CaptionFilter:
             issues.append('FLAG nhắc món không có box: ' + ', '.join(sorted(extra)))
         if missing:
             issues.append('FLAG thiếu món GT: ' + ', '.join(sorted(missing)))
-        if len(caption.split()) < 30:
+        if len(caption.split()) < (40 if LANG == 'en' else 30):
             issues.append('FLAG caption quá ngắn')
         return caption, issues
 
 
 def describe_items(row: dict, names: list[str]) -> str:
     groups = group_instances(row['detection']['instances'], names, row['width'], row['height'])
+    if LANG == 'en':
+        return '\n'.join(f'- {g.name} – {g.n} – {location_en(g)[0]}' for g in groups)
     return '\n'.join(f'- {g.name} – {g.n} – {g.location()[0]}' for g in groups)
 
 
@@ -176,6 +202,8 @@ def final_captions(accept: set[str]) -> tuple[dict[str, str], collections.Counte
     """filename -> caption dùng được: bản duyệt tay (dòng sau ghi đè dòng trước) ưu tiên hơn bản VLM tự lọc."""
     caps: dict[str, str] = {}
     status: dict[str, str] = {}
+    if not os.path.exists(RAW):  # chưa sinh caption VLM: mọi ảnh dùng caption template L2
+        return caps, collections.Counter()
     for r in read_jsonl(RAW):
         caps[r['filename']], status[r['filename']] = r['caption'], r['status']
     if os.path.exists(REVIEWED):
@@ -193,6 +221,8 @@ def strip_sentences(text: str, pattern: re.Pattern) -> str:
 
 def cmd_attach(args: argparse.Namespace) -> None:
     accept = set(args.accept.split(','))
+    if args.ov and LANG == 'en':
+        raise SystemExit('chưa có bộ OV tiếng Anh (annotations_ov/ là tiếng Việt)')
     caps, stat = final_captions(accept)
     print('trạng thái caption VLM:', dict(stat), '→ dùng', len(caps), 'ảnh (accept =', sorted(accept), ')')
     ann_dir = ANN_OV if args.ov else ANN

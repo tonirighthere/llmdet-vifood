@@ -21,7 +21,7 @@ import os
 import gradio as gr
 from PIL import Image, ImageDraw, ImageOps
 
-from vlm_captions import RAW, REVIEWED, ROOT, read_jsonl
+from vlm_captions import ANN, RAW, REVIEWED, ROOT, read_jsonl
 
 
 def load_queue(only_flagged: bool) -> list[dict]:
@@ -49,7 +49,7 @@ def main() -> None:
     args = p.parse_args()
     queue = load_queue(args.only_flagged)
     boxes = {r['filename']: r['detection']['instances']
-             for r in read_jsonl(os.path.join(ROOT, 'grounding_data/vifood54/annotations/train_od.jsonl'))}
+             for r in read_jsonl(os.path.join(ANN, 'train_od.jsonl'))}  # VIFOOD_LANG=en -> nhãn EN
 
     def show(i: int):
         if i >= len(queue):
