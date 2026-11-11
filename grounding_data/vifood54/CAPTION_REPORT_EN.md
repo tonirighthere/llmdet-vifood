@@ -1,0 +1,79 @@
+# ViFood-54 — báo cáo caption hình thái TIẾNG ANH
+
+- Biến thể / ảnh: ['L1', 'L1', 'L2', 'L2', 'L2', 'L2']; ngân sách 160 token BERT / caption
+- `train_vg_cap_rfs.jsonl`: 4164 dòng (theo train_od_rfs)
+- Thuộc tính VLM (train): 6977 lượt lớp-ảnh; giữ 17425/26699 thuộc tính taxonomy, thêm 0 đặc điểm VLM (bản dịch có 0 cụm), 45 lượt không còn thuộc tính, 2 lượt VLM lỗi (dùng taxonomy); lượng từ theo dụng cụ VLM thấy: 6250 lượt
+- Cụm bị lint loại trước khi ghép: 0 ()
+
+| split | ảnh | ảnh có caption | biến thể lỗi lint | caption khác nhau / ảnh (TB) | token L1 TB / p95 / max | token L2 TB / p95 / max |
+|---|---|---|---|---|---|---|
+| train | 3138 | 3138 | 0/18828 | 5.67 | 20 / 41 / 85 | 51 / 113 / 160 |
+| val | 404 | 404 | 0/2424 | 5.87 | 20 / 39 / 89 | 52 / 113 / 160 |
+| test | 414 | 414 | 0/2484 | 5.84 | 19 / 40 / 77 | 51 / 118 / 160 |
+
+## Lỗi lint (0 biến thể bị loại)
+
+- không có
+
+## 30 ví dụ ngẫu nhiên (train) để duyệt tay
+
+- `srcB_426_jpg.rf.65f528c73ba0b8f6dc0dfb5c94db39ca.jpg` [L2] In the bottom left corner and in the bottom right corner there are two bowls of fermented fish noodle soup, thin white noodles, white and orange seafood rings. In the top left corner is a plate of fresh herbs and greens, dark and light green leaves, mixed with white bean sprouts. A plate of boiled vegetables is in the top right corner, glossy wet leaves, neatly arranged on the plate.
+  - lật: In the bottom left corner and in the bottom right corner there are two bowls of fermented fish noodle soup, thin white noodles, white and orange seafood rings. In the top right corner is a plate of fresh herbs and greens, dark and light green leaves, mixed with white bean sprouts. A plate of boiled vegetables is in the top left corner, glossy wet leaves, neatly arranged on the plate.
+- `banh_beo_detail_00037.jpg` [L1] The image shows several small bowls of steamed rice cakes and a small bowl of dipping sauce.
+  - lật: The image shows several small bowls of steamed rice cakes and a small bowl of dipping sauce.
+- `bun_rieu_multi_dish_00126.jpg` [L2] Across the table there are four bowls of crab noodle soup, yellow-brown crab paste floating on top, golden fried tofu pieces. On the left and on the right there are two baskets of fresh herbs and greens, many kinds of leaves, dark and light green leaves. At the top and at the bottom there are two small bowls of dipping sauce, reddish-brown or yellow liquid, mixed with minced garlic.
+  - lật: Across the table there are four bowls of crab noodle soup, yellow-brown crab paste floating on top, golden fried tofu pieces. On the left and on the right there are two baskets of fresh herbs and greens, many kinds of leaves, dark and light green leaves. At the top and at the bottom there are two small bowls of dipping sauce, reddish-brown or yellow liquid, mixed with minced garlic.
+- `cach-bay-mam-com-cung-gio-le-vat-van-khan-va-goi-y-mam-com-tipsnote-800x500-4.jpg` [L2] A plate of boiled chicken is in the center, white meat at the cut faces, chopped into pieces on the plate. On the right is a plate of shredded salad, colorful shredded vegetables. A plate of fried spring rolls is at the bottom, cut into pieces. Across the table there are five servings of other dish. In the center there is a bowl of clear vegetable soup, clear or green broth. A plate of sticky rice is on the right, white or yellow glutinous rice grains. On the right there is a small bowl of dipping sauce, red chili slices floating on top.
+  - lật: A plate of boiled chicken is in the center, white meat at the cut faces, chopped into pieces on the plate. On the left is a plate of shredded salad, colorful shredded vegetables. A plate of fried spring rolls is at the bottom, cut into pieces. Across the table there are five servings of other dish. In the center there is a bowl of clear vegetable soup, clear or green broth. A plate of sticky rice is on the left, white or yellow glutinous rice grains. On the left there is a small bowl of dipping sauce, red chili slices floating on top.
+- `images_100.jpg` [L2] A large tray of roasted chicken is on the left, oily shiny surface, chopped into pieces. A large tray of sticky rice is in the bottom right corner, white or yellow glutinous rice grains. In the top left corner there is a basket of fresh herbs and greens, dark and light green leaves, many kinds of leaves. In the center is a small bowl of dipping sauce, red chili slices floating on top, reddish-brown or yellow liquid.
+  - lật: A large tray of roasted chicken is on the right, oily shiny surface, chopped into pieces. A large tray of sticky rice is in the bottom left corner, white or yellow glutinous rice grains. In the top right corner there is a basket of fresh herbs and greens, dark and light green leaves, many kinds of leaves. In the center is a small bowl of dipping sauce, red chili slices floating on top, reddish-brown or yellow liquid.
+- `srcB_373_jpg.rf.d747f637423a639d9c2ea2e859237d56.jpg` [L2] In the center and at the bottom there are two servings of mini crispy pancakes, golden-brown edges, many packed closely together. At the bottom is a basket of fresh herbs and greens, dark and light green leaves. In the bottom left corner there is a bowl of dipping sauce, mixed with minced garlic, reddish-brown or yellow liquid.
+  - lật: In the center and at the bottom there are two servings of mini crispy pancakes, golden-brown edges, many packed closely together. At the bottom is a basket of fresh herbs and greens, dark and light green leaves. In the bottom right corner there is a bowl of dipping sauce, mixed with minced garlic, reddish-brown or yellow liquid.
+- `srcB_79_jpg.rf.1e60d23de4ebc9967f5007b7caa8a256.jpg` [L2] Across the table there are several pieces of pia pastry, red characters stamped on top.
+  - lật: Across the table there are several pieces of pia pastry, red characters stamped on top.
+- `hu_tieu_detail_00001.jpg` [L2] A large bowl of hu tieu noodles is in the center, green leaves on top, white quail eggs and meat slices. On the right there is a serving of shrimp, curved orange-red bodies.
+  - lật: A large bowl of hu tieu noodles is in the center, green leaves on top, white quail eggs and meat slices. On the left there is a serving of shrimp, curved orange-red bodies.
+- `images_-_2026-09-30T151011.160.jpg` [L2] Across the table there are five bowls of pho noodle soup, chopped green scallions on top. In the bottom right corner there is a bowl of fresh herbs and greens, many kinds of leaves. Two small bowls of dipping sauce are in the top right corner and in the bottom left corner, reddish-brown or yellow liquid.
+  - lật: Across the table there are five bowls of pho noodle soup, chopped green scallions on top. In the bottom left corner there is a bowl of fresh herbs and greens, many kinds of leaves. Two small bowls of dipping sauce are in the top left corner and in the bottom right corner, reddish-brown or yellow liquid.
+- `com_tam_detail_00013.jpg` [L2] In the center is a large plate of broken rice, dark-brown grilled pork chop, small white rice grains. In the center is a plate of squid, long curled tentacles, cut into rings or whole. On the left is a plate of fresh herbs and greens, many kinds of leaves. A small bowl of dipping sauce is on the right, reddish-brown or yellow liquid.
+  - lật: In the center is a large plate of broken rice, dark-brown grilled pork chop, small white rice grains. In the center is a plate of squid, long curled tentacles, cut into rings or whole. On the right is a plate of fresh herbs and greens, many kinds of leaves. A small bowl of dipping sauce is on the left, reddish-brown or yellow liquid.
+- `banh_uc_detail_00012.jpg` [L1] The image shows a bowl of dipping sauce and a plate of steamed savory cake.
+  - lật: The image shows a bowl of dipping sauce and a plate of steamed savory cake.
+- `ga_luoc_detail_00009.jpg` [L2] Across the table there are several servings of boiled chicken, chopped into pieces on the plate.
+  - lật: Across the table there are several servings of boiled chicken, chopped into pieces on the plate.
+- `chao_long_multi_dish_00148.jpg` [L2] A large bowl of pork offal congee is in the bottom right corner, offal and blood sausage slices on top. On the left is a serving of other dish. At the top there is a basket of fresh herbs and greens, dark and light green leaves. At the bottom is a small bowl of dipping sauce, mixed with minced garlic.
+  - lật: A large bowl of pork offal congee is in the bottom left corner, offal and blood sausage slices on top. On the right is a serving of other dish. At the top there is a basket of fresh herbs and greens, dark and light green leaves. At the bottom is a small bowl of dipping sauce, mixed with minced garlic.
+- `rau_xao_detail_00005.jpg` [L1] The meal includes a plate of stir-fried vegetables.
+  - lật: The meal includes a plate of stir-fried vegetables.
+- `bun_rieu_detail_00053.jpg` [L2] A serving of other dish is in the top left corner. A large bowl of hue beef noodle soup is in the bottom left corner, orange-red broth with an oily film, green leaves on top. A small bowl of dipping sauce is on the right, reddish-brown or yellow liquid.
+  - lật: A serving of other dish is in the top right corner. A large bowl of hue beef noodle soup is in the bottom right corner, orange-red broth with an oily film, green leaves on top. A small bowl of dipping sauce is on the left, reddish-brown or yellow liquid.
+- `xoi_xeo_detail_00024.jpg` [L2] A large serving of sticky rice is in the center, white or yellow glutinous rice grains.
+  - lật: A large serving of sticky rice is in the center, white or yellow glutinous rice grains.
+- `goi_multi_dish_00110.jpg` [L2] In the center there is a large plate of shredded salad, shredded carrot and red chili, colorful shredded vegetables.
+  - lật: In the center there is a large plate of shredded salad, shredded carrot and red chili, colorful shredded vegetables.
+- `banh_xeo_detail_00164.jpg` [L2] In the center is a large tray of sizzling crepe, thin turmeric-yellow pancake. In the top right corner there is a bowl of dipping sauce, red chili slices floating on top, reddish-brown or yellow liquid.
+  - lật: In the center is a large tray of sizzling crepe, thin turmeric-yellow pancake. In the top left corner there is a bowl of dipping sauce, red chili slices floating on top, reddish-brown or yellow liquid.
+- `srcB_922_jpg.rf.22c27bfdf3403b1e9116c4fe93cd1677.jpg` [L2] Three bowls of thick noodle soup are scattered across the table, thick round opaque white noodles.
+  - lật: Three bowls of thick noodle soup are scattered across the table, thick round opaque white noodles.
+- `srcA_H-011_jpg.rf.addf69245d81cf6c2805821b93e7b756.jpg` [L1] The image shows a plate of rice vermicelli, a plate of sliced beef, four servings of shrimp, a plate of squid, two bowls of clear vegetable soup, three servings of clams and scallops and a serving of whole crab.
+  - lật: The image shows a plate of rice vermicelli, a plate of sliced beef, four servings of shrimp, a plate of squid, two bowls of clear vegetable soup, three servings of clams and scallops and a serving of whole crab.
+- `hu_tieu_multi_dish_00291.jpg` [L2] In the center is a large bowl of hu tieu noodles, thin translucent noodles, white quail eggs and meat slices. In the top right corner is a plate of fresh herbs and greens, mixed with white bean sprouts. On the left there is a plate of shrimp, curved orange-red bodies.
+  - lật: In the center is a large bowl of hu tieu noodles, thin translucent noodles, white quail eggs and meat slices. In the top left corner is a plate of fresh herbs and greens, mixed with white bean sprouts. On the right there is a plate of shrimp, curved orange-red bodies.
+- `srcB_288_jpg.rf.45a50ac0ed4ce4da549561c19e23b79c.jpg` [L2] Five servings of mini crispy pancakes are scattered across the table, golden-brown edges.
+  - lật: Five servings of mini crispy pancakes are scattered across the table, golden-brown edges.
+- `srcB_401_jpg.rf.adf6bcb902194ecd719fd7e2e2528219.jpg` [L2] Across the table there are several servings of mini crispy pancakes, dotted with orange-pink topping, golden-brown edges.
+  - lật: Across the table there are several servings of mini crispy pancakes, dotted with orange-pink topping, golden-brown edges.
+- `srcC_77_jpg.rf.9f64d4c98894e3240d3507a7f421e336.jpg` [L2] A large plate of fresh herbs and greens is on the left, densely piled, dark and light green leaves. A large bowl of quang noodles is on the right, broken yellow rice crackers. In the top right corner is a plate of rice paper, speckled matte white surface.
+  - lật: A large plate of fresh herbs and greens is on the right, densely piled, dark and light green leaves. A large bowl of quang noodles is on the left, broken yellow rice crackers. In the top left corner is a plate of rice paper, speckled matte white surface.
+- `srcB_359_jpg.rf.1ee3ef370716c0d0fe94e3fab6f7eb2e.jpg` [L2] Two servings of mini crispy pancakes are on the left and on the right, golden-brown edges.
+  - lật: Two servings of mini crispy pancakes are on the left and on the right, golden-brown edges.
+- `banh_xeo_multi_dish_00086.jpg` [L1] Two baskets of fresh herbs and greens, a plate of rice vermicelli, two small bowls of dipping sauce, a serving of other dish and four servings of sizzling crepe.
+  - lật: Two baskets of fresh herbs and greens, a plate of rice vermicelli, two small bowls of dipping sauce, a serving of other dish and four servings of sizzling crepe.
+- `srcA_H-106_jpg.rf.698052f8fd2636c5c8bd9e8c9413fd11.jpg` [L2] A serving of dessert is in the bottom right corner. On the right there is a plate of squid, cut into rings or whole.
+  - lật: A serving of dessert is in the bottom left corner. On the left there is a plate of squid, cut into rings or whole.
+- `mon_an_khac_multi_dish_00101.jpg` [L2] At the bottom is a plate of boiled chicken, white meat at the cut faces. At the top there is a serving of other dish. A plate of stir-fried vegetables is on the left, arranged on a plate, cut into pieces. On the right is a serving of sticky rice, white or yellow glutinous rice grains. On the left is a small plate of sliced beef, reddish-brown meat slices, thinly sliced. In the center there is a small bowl of dipping sauce, mixed with minced garlic.
+  - lật: At the bottom is a plate of boiled chicken, white meat at the cut faces. At the top there is a serving of other dish. A plate of stir-fried vegetables is on the right, arranged on a plate, cut into pieces. On the left is a serving of sticky rice, white or yellow glutinous rice grains. On the right is a small plate of sliced beef, reddish-brown meat slices, thinly sliced. In the center there is a small bowl of dipping sauce, mixed with minced garlic.
+- `bun_rieu_detail_00031.jpg` [L2] At the top and at the bottom there are two bowls of hue beef noodle soup, green leaves on top. On the right is a bowl of fresh herbs and greens, dark and light green leaves, many kinds of leaves. On the left there is a bowl of dipping sauce, red chili slices floating on top.
+  - lật: At the top and at the bottom there are two bowls of hue beef noodle soup, green leaves on top. On the left is a bowl of fresh herbs and greens, dark and light green leaves, many kinds of leaves. On the right there is a bowl of dipping sauce, red chili slices floating on top.
+- `mon_an_khac_detail_00006.jpg` [L2] In the center is a large plate of fresh spring rolls, long cylindrical rolls, translucent wrapper. In the top left corner and on the left there are two small bowls of dipping sauce, reddish-brown or yellow liquid.
+  - lật: In the center is a large plate of fresh spring rolls, long cylindrical rolls, translucent wrapper. In the top right corner and on the right there are two small bowls of dipping sauce, reddish-brown or yellow liquid.

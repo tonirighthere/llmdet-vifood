@@ -1,0 +1,3431 @@
+{
+ "version": "vifood54-v2",
+ "schema": {
+  "id": "chỉ số lớp = thứ tự obj.names trong zip CVAT (id nguồn)",
+  "name": "tên tiếng Việt, dùng NGUYÊN VĂN làm prompt cho BERT; không đổi tùy tiện (đổi = đổi lớp)",
+  "en": "tên tiếng Anh (báo cáo, so sánh zero-shot)",
+  "aliases": "tên gọi khác / vùng miền: app (truy vấn người dùng), prompt OV; không đưa vào prompt train",
+  "group": "dish | side | sauce | catch_all; catch_all không có thuộc tính hình thái, báo cáo mAP có/không catch_all",
+  "supercategory": "nhóm lớn (khóa trong `supercategories`): AP theo nhóm, phân tầng split OV",
+  "visual.definition": "một câu mô tả NHÌN THẤY (không hương vị, không tên lớp khác): caption vùng, prompt LMM, bảng luận văn",
+  "visual.units": "lượng từ khi 1 box (tô, đĩa, chén...)",
+  "visual.multi_units": "lượng từ khi ≥2 box cùng lớp (box thường là từng miếng); thiếu thì dùng units",
+  "visual.attrs": "cụm thuộc tính hình thái ghép vào caption L2; lint trên token BERT đã bỏ dấu",
+  "confusable_with": "lớp dễ nhầm + dấu hiệu nhìn thấy của LỚP NÀY để phân biệt: negative khó cho VG (Pha 3), cặp theo dõi khi đánh giá",
+  "ov_split": "base | novel cho thí nghiệm open-vocabulary",
+  "nutrition_key": "khóa trong llmdet_vietnamese_food/nutrition_vifood_51.json; null = chưa có dữ liệu",
+  "label_notes": "thực tế nhãn khác tên gọi thông thường (đọc trước khi diễn giải kết quả)"
+ },
+ "source_names": [
+  "bánh bèo",
+  "bánh bột lọc",
+  "bánh canh",
+  "bánh chưng",
+  "bánh cuốn",
+  "bánh căn",
+  "bánh giò",
+  "bánh khọt",
+  "bánh mì",
+  "bánh pía",
+  "bánh tráng",
+  "bánh tét",
+  "bánh xèo",
+  "bánh đúc",
+  "bún bò Huế",
+  "bún tươi",
+  "bún mắm",
+  "bún riêu",
+  "bún thịt nướng",
+  "bún đậu mắm tôm",
+  "canh",
+  "cao lầu",
+  "cháo lòng",
+  "chả giò",
+  "cua",
+  "cá chiên",
+  "cơm chiên",
+  "cơm tấm",
+  "gà luộc",
+  "gỏi",
+  "gỏi cuốn",
+  "heo quay",
+  "hàu",
+  "hủ tiếu",
+  "lẩu",
+  "mì Quảng",
+  "mực",
+  "nem chua",
+  "ngao sò",
+  "phở",
+  "rau sống",
+  "súp cua",
+  "thịt bò",
+  "rau luộc",
+  "tôm",
+  "xôi",
+  "ốc",
+  "món ăn khác",
+  "rau xào",
+  "đồ chấm",
+  "gà quay",
+  "nem rán",
+  "món tráng miệng",
+  "quẩy"
+ ],
+ "merge_into": {},
+ "supercategories": {
+  "banh": {
+   "name": "bánh và món bột",
+   "en": "cakes & dumplings"
+  },
+  "noodle_soup": {
+   "name": "món sợi có nước dùng",
+   "en": "noodle soups"
+  },
+  "noodle_dry": {
+   "name": "bún ăn khô / bún kèm",
+   "en": "dry noodle dishes"
+  },
+  "rice": {
+   "name": "cơm, xôi, cháo",
+   "en": "rice & porridge"
+  },
+  "soup_pot": {
+   "name": "canh, súp, lẩu",
+   "en": "soups & hotpot"
+  },
+  "seafood": {
+   "name": "hải sản và cá",
+   "en": "seafood & fish"
+  },
+  "meat": {
+   "name": "thịt, gà, giò chả",
+   "en": "meat & poultry"
+  },
+  "roll_salad": {
+   "name": "cuốn và gỏi",
+   "en": "rolls & salads"
+  },
+  "vegetable": {
+   "name": "rau",
+   "en": "vegetables"
+  },
+  "sauce": {
+   "name": "nước chấm",
+   "en": "dipping sauces"
+  },
+  "other": {
+   "name": "nhóm gom (catch-all)",
+   "en": "catch-all"
+  }
+ },
+ "classes": [
+  {
+   "id": 0,
+   "name": "steamed rice cakes",
+   "en": "steamed rice cakes",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "banh",
+   "visual": {
+    "definition": "thin white steamed rice-flour cakes in small bowls, topped with orange floss and green scallion oil",
+    "attrs": [
+     "thin white batter layer",
+     "sprinkled with orange floss",
+     "dotted with green scallion oil",
+     "flat white surface"
+    ],
+    "units": [
+     [
+      "small bowl",
+      "small bowls"
+     ]
+    ],
+    "multi_units": null,
+    "attrs_vi": [
+     "lớp bột trắng mỏng",
+     "rắc ruốc màu cam",
+     "điểm mỡ hành xanh",
+     "mặt bột trắng phẳng"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "tapioca dumplings",
+     "cue": "bột trắng đục trong chén nhỏ"
+    },
+    {
+     "name": "mini crispy pancakes",
+     "cue": "bột trắng đục trong chén, rắc ruốc"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "bánh bèo",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 87,
+     "boxes": 784
+    },
+    "val": {
+     "images": 11,
+     "boxes": 122
+    },
+    "test": {
+     "images": 10,
+     "boxes": 71
+    }
+   },
+   "name_vi": "bánh bèo"
+  },
+  {
+   "id": 1,
+   "name": "tapioca dumplings",
+   "en": "tapioca dumplings",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "banh",
+   "visual": {
+    "definition": "flat dumplings with a translucent wrapper showing an orange-red filling, often on banana leaves",
+    "attrs": [
+     "translucent wrapper",
+     "orange-red filling visible inside",
+     "placed on green banana leaves",
+     "flat rectangular pieces"
+    ],
+    "units": [
+     [
+      "serving",
+      "servings"
+     ],
+     [
+      "plate",
+      "plates"
+     ]
+    ],
+    "multi_units": [
+     [
+      "piece",
+      "pieces"
+     ],
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "vỏ bột trong suốt",
+     "lộ nhân màu cam đỏ bên trong",
+     "đặt trên lá chuối xanh",
+     "miếng dẹt hình chữ nhật"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "steamed rice cakes",
+     "cue": "vỏ trong suốt lộ nhân"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "bánh bột lọc",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 84,
+     "boxes": 331
+    },
+    "val": {
+     "images": 12,
+     "boxes": 34
+    },
+    "test": {
+     "images": 12,
+     "boxes": 66
+    }
+   },
+   "name_vi": "bánh bột lọc"
+  },
+  {
+   "id": 2,
+   "name": "thick noodle soup",
+   "en": "thick noodle soup",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "noodle_soup",
+   "visual": {
+    "definition": "bowl of thick round opaque white noodles in a thick broth, topped with meat, pork roll and scallions",
+    "attrs": [
+     "thick round opaque white noodles",
+     "thick broth",
+     "sprinkled with green scallions",
+     "pork roll slices and meat on top"
+    ],
+    "units": [
+     [
+      "bowl",
+      "bowls"
+     ]
+    ],
+    "multi_units": null,
+    "attrs_vi": [
+     "sợi to tròn màu trắng đục",
+     "nước dùng sánh",
+     "rắc hành lá xanh",
+     "lát giò và miếng thịt trên mặt"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "hue beef noodle soup",
+     "cue": "nước sánh màu nhạt"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "bánh canh",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 65,
+     "boxes": 125
+    },
+    "val": {
+     "images": 9,
+     "boxes": 12
+    },
+    "test": {
+     "images": 8,
+     "boxes": 12
+    }
+   },
+   "name_vi": "bánh canh"
+  },
+  {
+   "id": 3,
+   "name": "square rice cake",
+   "en": "square sticky rice cake",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "banh",
+   "visual": {
+    "definition": "square block of glutinous rice wrapped in green dong leaves and tied with bamboo strings; the cut face shows green rice and a yellow filling",
+    "attrs": [
+     "neat square shape",
+     "wrapped in green dong leaves",
+     "bamboo strings tied in a grid",
+     "cut face with a green rice layer and yellow filling"
+    ],
+    "units": [
+     [
+      "piece",
+      "pieces"
+     ]
+    ],
+    "multi_units": null,
+    "attrs_vi": [
+     "hình vuông vức",
+     "bọc lá dong xanh",
+     "lạt buộc thành ô vuông",
+     "lát cắt có lớp nếp xanh và nhân vàng"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "cylindrical rice cake",
+     "cue": "hình vuông, gói lá dong"
+    },
+    {
+     "name": "pyramid rice dumpling",
+     "cue": "hình vuông, buộc lạt"
+    },
+    {
+     "name": "steamed savory cake",
+     "cue": "khối nếp bọc lá dong"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "bánh chưng",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 55,
+     "boxes": 203
+    },
+    "val": {
+     "images": 8,
+     "boxes": 19
+    },
+    "test": {
+     "images": 8,
+     "boxes": 59
+    }
+   },
+   "name_vi": "bánh chưng"
+  },
+  {
+   "id": 4,
+   "name": "steamed rice rolls",
+   "en": "steamed rice rolls",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "banh",
+   "visual": {
+    "definition": "thin white rice sheets rolled and lined up on a plate, glossy surface sprinkled with fried shallots",
+    "attrs": [
+     "thin white rolled sheets",
+     "sprinkled with golden fried shallots",
+     "glossy white surface",
+     "lined up in a row on the plate"
+    ],
+    "units": [
+     [
+      "plate",
+      "plates"
+     ],
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "multi_units": [
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "lớp bột trắng mỏng cuộn tròn",
+     "rắc hành phi vàng",
+     "bề mặt trắng bóng",
+     "xếp thành dãy trên đĩa"
+    ]
+   },
+   "confusable_with": [],
+   "ov_split": "base",
+   "nutrition_key": "bánh cuốn",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 77,
+     "boxes": 152
+    },
+    "val": {
+     "images": 9,
+     "boxes": 15
+    },
+    "test": {
+     "images": 10,
+     "boxes": 20
+    }
+   },
+   "name_vi": "bánh cuốn"
+  },
+  {
+   "id": 5,
+   "name": "mini savory pancakes",
+   "en": "mini savory pancakes",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "banh",
+   "visual": {
+    "definition": "small round white cakes with golden-brown bottoms and a pitted surface, often stacked in pairs",
+    "attrs": [
+     "small round white cakes",
+     "golden-brown bottoms",
+     "surface dotted with small holes",
+     "stacked face to face in pairs",
+     "sprinkled with scallions"
+    ],
+    "units": [
+     [
+      "serving",
+      "servings"
+     ],
+     [
+      "plate",
+      "plates"
+     ]
+    ],
+    "multi_units": [
+     [
+      "piece",
+      "pieces"
+     ],
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "bánh tròn nhỏ màu trắng",
+     "đáy vàng nâu",
+     "mặt bánh lấm tấm lỗ nhỏ",
+     "xếp úp từng cặp",
+     "rắc hành lá"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "mini crispy pancakes",
+     "cue": "bánh trắng đáy vàng, úp từng cặp"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "bánh căn",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 88,
+     "boxes": 254
+    },
+    "val": {
+     "images": 11,
+     "boxes": 41
+    },
+    "test": {
+     "images": 11,
+     "boxes": 42
+    }
+   },
+   "name_vi": "bánh căn"
+  },
+  {
+   "id": 6,
+   "name": "pyramid rice dumpling",
+   "en": "pyramid rice dumpling",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "banh",
+   "visual": {
+    "definition": "pyramid-shaped cake wrapped in banana leaf with an opaque white dough and a dark meat filling",
+    "attrs": [
+     "pyramid shape",
+     "wrapped in banana leaf",
+     "opaque white dough layer",
+     "dark filling of meat and wood ear mushroom"
+    ],
+    "units": [
+     [
+      "piece",
+      "pieces"
+     ],
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "multi_units": [
+     [
+      "piece",
+      "pieces"
+     ],
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "hình chóp",
+     "bọc lá chuối",
+     "lớp bột trắng đục",
+     "nhân thịt và mộc nhĩ màu sẫm"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "square rice cake",
+     "cue": "hình chóp, vỏ bột trắng đục"
+    }
+   ],
+   "ov_split": "novel",
+   "nutrition_key": "bánh giò",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 73,
+     "boxes": 153
+    },
+    "val": {
+     "images": 9,
+     "boxes": 17
+    },
+    "test": {
+     "images": 9,
+     "boxes": 15
+    }
+   },
+   "name_vi": "bánh giò"
+  },
+  {
+   "id": 7,
+   "name": "mini crispy pancakes",
+   "en": "mini crispy pancakes",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "banh",
+   "visual": {
+    "definition": "small round deep-yellow cakes with brown edges packed closely, topped with an orange-pink filling",
+    "attrs": [
+     "small round yellow cakes",
+     "golden-brown edges",
+     "dotted with orange-pink topping",
+     "many packed closely together"
+    ],
+    "units": [
+     [
+      "serving",
+      "servings"
+     ],
+     [
+      "plate",
+      "plates"
+     ]
+    ],
+    "multi_units": [
+     [
+      "piece",
+      "pieces"
+     ],
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "bánh tròn nhỏ màu vàng",
+     "viền vàng nâu",
+     "mặt bánh điểm nhân màu cam hồng",
+     "xếp nhiều cái sát nhau"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "mini savory pancakes",
+     "cue": "bánh vàng sậm, nhân màu cam hồng"
+    },
+    {
+     "name": "steamed rice cakes",
+     "cue": "bánh vàng sậm viền nâu"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "bánh khọt",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 180,
+     "boxes": 1089
+    },
+    "val": {
+     "images": 23,
+     "boxes": 112
+    },
+    "test": {
+     "images": 23,
+     "boxes": 134
+    }
+   },
+   "name_vi": "bánh khọt"
+  },
+  {
+   "id": 8,
+   "name": "baguette sandwich",
+   "en": "vietnamese baguette",
+   "aliases": [
+    "bánh mỳ"
+   ],
+   "group": "dish",
+   "supercategory": "banh",
+   "visual": {
+    "definition": "long loaf with a golden-brown crust and tapered ends, usually split lengthwise and filled with meat and greens",
+    "attrs": [
+     "long loaf with a golden-brown crust",
+     "split lengthwise with filling",
+     "green leaves and meat slices showing inside",
+     "two tapered ends"
+    ],
+    "units": [
+     [
+      "piece",
+      "pieces"
+     ]
+    ],
+    "multi_units": null,
+    "attrs_vi": [
+     "ổ bánh dài vỏ vàng nâu",
+     "xẻ dọc kẹp nhân",
+     "lộ lá xanh và lát thịt bên trong",
+     "hai đầu thon nhọn"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "rice paper",
+     "cue": "ổ dài vỏ vàng nâu dày"
+    },
+    {
+     "name": "sizzling crepe",
+     "cue": "ổ dài vỏ dày xẻ dọc"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "bánh mì",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 115,
+     "boxes": 308
+    },
+    "val": {
+     "images": 15,
+     "boxes": 34
+    },
+    "test": {
+     "images": 15,
+     "boxes": 42
+    }
+   },
+   "name_vi": "bánh mì"
+  },
+  {
+   "id": 9,
+   "name": "pia pastry",
+   "en": "pia pastry",
+   "aliases": [
+    "bánh bía"
+   ],
+   "group": "dish",
+   "supercategory": "banh",
+   "visual": {
+    "definition": "flat round pastry with a layered ivory-white crust stamped with red characters; the cut face shows a yellow filling",
+    "attrs": [
+     "flat round cake",
+     "layered ivory-white crust",
+     "red characters stamped on top",
+     "cut face showing yellow filling and egg yolk"
+    ],
+    "units": [
+     [
+      "piece",
+      "pieces"
+     ]
+    ],
+    "multi_units": null,
+    "attrs_vi": [
+     "bánh tròn dẹt",
+     "vỏ nhiều lớp màu trắng ngà",
+     "in dấu chữ màu đỏ trên mặt",
+     "lát cắt lộ nhân vàng và lòng đỏ trứng"
+    ]
+   },
+   "confusable_with": [],
+   "ov_split": "novel",
+   "nutrition_key": "bánh pía",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 60,
+     "boxes": 343
+    },
+    "val": {
+     "images": 8,
+     "boxes": 52
+    },
+    "test": {
+     "images": 8,
+     "boxes": 33
+    }
+   },
+   "name_vi": "bánh pía"
+  },
+  {
+   "id": 10,
+   "name": "rice paper",
+   "en": "rice paper",
+   "aliases": [
+    "bánh tráng nướng",
+    "bánh đa"
+   ],
+   "group": "dish",
+   "supercategory": "banh",
+   "visual": {
+    "definition": "thin round matte white sheets with speckles, sometimes grilled and topped with egg and scallions",
+    "attrs": [
+     "thin round sheets",
+     "speckled matte white surface",
+     "grilled with egg and scallions on top",
+     "broken into small pieces"
+    ],
+    "units": [
+     [
+      "serving",
+      "servings"
+     ],
+     [
+      "plate",
+      "plates"
+     ]
+    ],
+    "multi_units": [
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "lá bánh mỏng tròn",
+     "bề mặt trắng mờ lấm tấm",
+     "nướng phủ trứng và hành trên mặt",
+     "bẻ thành miếng nhỏ"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "baguette sandwich",
+     "cue": "lá mỏng tròn trắng mờ"
+    },
+    {
+     "name": "sizzling crepe",
+     "cue": "lá mỏng phẳng, phủ trứng nướng"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "bánh tráng",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 157,
+     "boxes": 229
+    },
+    "val": {
+     "images": 20,
+     "boxes": 27
+    },
+    "test": {
+     "images": 20,
+     "boxes": 30
+    }
+   },
+   "name_vi": "bánh tráng"
+  },
+  {
+   "id": 11,
+   "name": "cylindrical rice cake",
+   "en": "cylindrical rice cake",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "banh",
+   "visual": {
+    "definition": "long cylinder of glutinous rice wrapped in banana leaves and tied with strings, cut into round slices showing a central filling",
+    "attrs": [
+     "long cylindrical shape",
+     "cut into round slices",
+     "cut face with a ring of rice around a yellow filling",
+     "wrapped in banana leaves tied crosswise"
+    ],
+    "units": [
+     [
+      "serving",
+      "servings"
+     ],
+     [
+      "plate",
+      "plates"
+     ]
+    ],
+    "multi_units": [
+     [
+      "slice",
+      "slices"
+     ],
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "hình trụ dài",
+     "cắt thành khoanh tròn",
+     "lát cắt có vòng nếp bao quanh nhân vàng",
+     "bọc lá chuối buộc lạt ngang"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "square rice cake",
+     "cue": "hình trụ, cắt khoanh tròn"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "bánh tét",
+   "label_notes": "Có cả nguyên đòn bọc lá và khoanh cắt.",
+   "stats": {
+    "train": {
+     "images": 142,
+     "boxes": 596
+    },
+    "val": {
+     "images": 17,
+     "boxes": 81
+    },
+    "test": {
+     "images": 19,
+     "boxes": 68
+    }
+   },
+   "name_vi": "bánh tét"
+  },
+  {
+   "id": 12,
+   "name": "sizzling crepe",
+   "en": "sizzling crepe",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "banh",
+   "visual": {
+    "definition": "thin turmeric-yellow crepe folded into a half moon with golden-brown edges, bean sprouts inside",
+    "attrs": [
+     "thin turmeric-yellow pancake",
+     "folded into a half moon",
+     "white bean sprouts showing inside",
+     "golden-brown edges"
+    ],
+    "units": [
+     [
+      "piece",
+      "pieces"
+     ],
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "multi_units": null,
+    "attrs_vi": [
+     "bánh mỏng màu vàng nghệ",
+     "gấp đôi hình bán nguyệt",
+     "lộ giá đỗ trắng bên trong",
+     "mép bánh vàng nâu"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "rice paper",
+     "cue": "bánh vàng nghệ gấp đôi, lộ giá đỗ"
+    },
+    {
+     "name": "baguette sandwich",
+     "cue": "bánh mỏng vàng gấp hình bán nguyệt"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "bánh xèo",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 157,
+     "boxes": 318
+    },
+    "val": {
+     "images": 20,
+     "boxes": 50
+    },
+    "test": {
+     "images": 20,
+     "boxes": 38
+    }
+   },
+   "name_vi": "bánh xèo"
+  },
+  {
+   "id": 13,
+   "name": "steamed savory cake",
+   "en": "steamed savory cake",
+   "aliases": [
+    "bánh đúc lá dứa"
+   ],
+   "group": "dish",
+   "supercategory": "banh",
+   "visual": {
+    "definition": "smooth green or white rice-flour cake cut into diamond or square pieces with a glossy surface",
+    "attrs": [
+     "green or white rice-flour block",
+     "cut into diamond or square pieces",
+     "smooth glossy surface",
+     "stacked on the plate"
+    ],
+    "units": [
+     [
+      "serving",
+      "servings"
+     ],
+     [
+      "plate",
+      "plates"
+     ]
+    ],
+    "multi_units": [
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "khối bột màu xanh lá hoặc trắng",
+     "cắt miếng hình thoi hoặc vuông",
+     "bề mặt nhẵn bóng",
+     "xếp chồng trên đĩa"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "square rice cake",
+     "cue": "miếng bột mịn nhẵn bóng, không lá"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "bánh đúc",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 50,
+     "boxes": 210
+    },
+    "val": {
+     "images": 7,
+     "boxes": 25
+    },
+    "test": {
+     "images": 7,
+     "boxes": 59
+    }
+   },
+   "name_vi": "bánh đúc"
+  },
+  {
+   "id": 14,
+   "name": "hue beef noodle soup",
+   "en": "hue beef noodle soup",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "noodle_soup",
+   "visual": {
+    "definition": "bowl of thick round noodles in an orange-red broth with an oily film, pork knuckle and meat",
+    "attrs": [
+     "orange-red broth with an oily film",
+     "thick round white noodles",
+     "meat and pork knuckle slices",
+     "green leaves on top"
+    ],
+    "units": [
+     [
+      "bowl",
+      "bowls"
+     ]
+    ],
+    "multi_units": null,
+    "attrs_vi": [
+     "nước dùng màu đỏ cam có váng dầu",
+     "sợi to tròn màu trắng",
+     "miếng thịt và khoanh giò heo",
+     "lá xanh trên mặt"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "crab noodle soup",
+     "cue": "váng dầu đỏ, khoanh giò heo, sợi to"
+    },
+    {
+     "name": "thick noodle soup",
+     "cue": "nước đỏ cam có váng dầu"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "bún bò Huế",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 97,
+     "boxes": 158
+    },
+    "val": {
+     "images": 13,
+     "boxes": 17
+    },
+    "test": {
+     "images": 13,
+     "boxes": 23
+    }
+   },
+   "name_vi": "bún bò Huế"
+  },
+  {
+   "id": 15,
+   "name": "rice vermicelli",
+   "en": "rice vermicelli",
+   "aliases": [
+    "bún",
+    "bún lá"
+   ],
+   "group": "side",
+   "supercategory": "noodle_dry",
+   "visual": {
+    "definition": "thin white noodles pressed into sheets or coils, served separately on a plate",
+    "attrs": [
+     "thin white noodles",
+     "pressed into sheets or coils",
+     "served separately on a plate",
+     "smooth white strands"
+    ],
+    "units": [
+     [
+      "plate",
+      "plates"
+     ],
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "multi_units": [
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "sợi nhỏ màu trắng",
+     "xếp thành lá hoặc cuộn",
+     "đặt riêng trên đĩa",
+     "mặt sợi trắng mịn"
+    ]
+   },
+   "confusable_with": [],
+   "ov_split": "base",
+   "nutrition_key": "bún",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 120,
+     "boxes": 146
+    },
+    "val": {
+     "images": 15,
+     "boxes": 19
+    },
+    "test": {
+     "images": 15,
+     "boxes": 23
+    }
+   },
+   "name_vi": "bún tươi"
+  },
+  {
+   "id": 16,
+   "name": "fermented fish noodle soup",
+   "en": "fermented fish noodle soup",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "noodle_soup",
+   "visual": {
+    "definition": "bowl of thin noodles in a cloudy brown broth topped with seafood rings and pork slices",
+    "attrs": [
+     "cloudy brown broth",
+     "white and orange seafood rings",
+     "pork slices on top",
+     "thin white noodles"
+    ],
+    "units": [
+     [
+      "bowl",
+      "bowls"
+     ]
+    ],
+    "multi_units": null,
+    "attrs_vi": [
+     "nước dùng màu nâu đục",
+     "khoanh hải sản màu trắng và cam",
+     "lát thịt heo trên mặt",
+     "sợi nhỏ màu trắng"
+    ]
+   },
+   "confusable_with": [],
+   "ov_split": "base",
+   "nutrition_key": "bún mắm",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 49,
+     "boxes": 79
+    },
+    "val": {
+     "images": 6,
+     "boxes": 14
+    },
+    "test": {
+     "images": 7,
+     "boxes": 20
+    }
+   },
+   "name_vi": "bún mắm"
+  },
+  {
+   "id": 17,
+   "name": "crab noodle soup",
+   "en": "crab noodle soup",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "noodle_soup",
+   "visual": {
+    "definition": "bowl of thin noodles in an orange-red broth with yellow-brown crab paste, fried tofu and tomato",
+    "attrs": [
+     "orange-red broth",
+     "yellow-brown crab paste floating on top",
+     "golden fried tofu pieces",
+     "red tomato slices"
+    ],
+    "units": [
+     [
+      "bowl",
+      "bowls"
+     ]
+    ],
+    "multi_units": null,
+    "attrs_vi": [
+     "nước dùng màu đỏ cam",
+     "mảng riêu màu nâu vàng nổi trên mặt",
+     "miếng đậu phụ chiên vàng",
+     "lát cà chua đỏ"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "hue beef noodle soup",
+     "cue": "mảng riêu nâu vàng, lát cà chua, đậu phụ"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "bún riêu",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 101,
+     "boxes": 173
+    },
+    "val": {
+     "images": 13,
+     "boxes": 25
+    },
+    "test": {
+     "images": 13,
+     "boxes": 21
+    }
+   },
+   "name_vi": "bún riêu"
+  },
+  {
+   "id": 18,
+   "name": "grilled pork noodle bowl",
+   "en": "grilled pork noodle bowl",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "noodle_dry",
+   "visual": {
+    "definition": "bowl of white noodles covered with dark-brown grilled meat, with greens, cucumber and peanuts",
+    "attrs": [
+     "dark-brown grilled meat pieces",
+     "on a bed of white noodles",
+     "with green leaves and cucumber",
+     "sprinkled with roasted peanuts"
+    ],
+    "units": [
+     [
+      "bowl",
+      "bowls"
+     ],
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "multi_units": null,
+    "attrs_vi": [
+     "miếng thịt nướng màu nâu sẫm",
+     "đặt trên lớp sợi trắng",
+     "kèm lá xanh và dưa chuột",
+     "rắc lạc rang"
+    ]
+   },
+   "confusable_with": [],
+   "ov_split": "base",
+   "nutrition_key": "bún thịt nướng",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 54,
+     "boxes": 79
+    },
+    "val": {
+     "images": 7,
+     "boxes": 9
+    },
+    "test": {
+     "images": 7,
+     "boxes": 9
+    }
+   },
+   "name_vi": "bún thịt nướng"
+  },
+  {
+   "id": 19,
+   "name": "tofu and noodle platter",
+   "en": "tofu and noodle platter",
+   "aliases": [
+    "bún đậu"
+   ],
+   "group": "dish",
+   "supercategory": "noodle_dry",
+   "visual": {
+    "definition": "bamboo tray lined with banana leaf holding golden fried tofu, pressed white noodles and a small bowl of purple-gray sauce",
+    "attrs": [
+     "bamboo tray lined with banana leaf",
+     "golden fried tofu pieces",
+     "pressed white noodle cakes",
+     "small bowl of purple-gray sauce"
+    ],
+    "units": [
+     [
+      "bamboo tray",
+      "bamboo trays"
+     ],
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "multi_units": null,
+    "attrs_vi": [
+     "mẹt tre lót lá chuối",
+     "miếng đậu phụ chiên vàng",
+     "lá bún ép màu trắng",
+     "chén nước chấm màu tím xám"
+    ]
+   },
+   "confusable_with": [],
+   "ov_split": "base",
+   "nutrition_key": "bún đậu mắm tôm",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 95,
+     "boxes": 159
+    },
+    "val": {
+     "images": 15,
+     "boxes": 23
+    },
+    "test": {
+     "images": 12,
+     "boxes": 24
+    }
+   },
+   "name_vi": "bún đậu mắm tôm"
+  },
+  {
+   "id": 20,
+   "name": "clear vegetable soup",
+   "en": "vietnamese soup",
+   "aliases": [
+    "canh rau",
+    "canh chua"
+   ],
+   "group": "dish",
+   "supercategory": "soup_pot",
+   "visual": {
+    "definition": "bowl of clear or green broth with leafy vegetables, often with a spoon in the bowl",
+    "attrs": [
+     "clear or green broth",
+     "green leafy vegetables in the broth",
+     "spoon in the bowl",
+     "broth dotted with scallions"
+    ],
+    "units": [
+     [
+      "bowl",
+      "bowls"
+     ]
+    ],
+    "multi_units": null,
+    "attrs_vi": [
+     "nước trong hoặc màu xanh",
+     "rau lá xanh trong nước",
+     "có thìa trong bát",
+     "mặt nước điểm hành lá"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "dipping sauce",
+     "cue": "bát nước có rau lá, có thìa"
+    },
+    {
+     "name": "hotpot",
+     "cue": "bát nhỏ nước trong"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "canh chua",
+   "label_notes": "Gom các loại canh nước trong (canh rau, canh chua...).",
+   "stats": {
+    "train": {
+     "images": 105,
+     "boxes": 127
+    },
+    "val": {
+     "images": 13,
+     "boxes": 14
+    },
+    "test": {
+     "images": 13,
+     "boxes": 14
+    }
+   },
+   "name_vi": "canh"
+  },
+  {
+   "id": 21,
+   "name": "cao lau noodles",
+   "en": "cao lau noodles",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "noodle_soup",
+   "visual": {
+    "definition": "bowl of thick flat yellow-brown noodles with little broth, red-rimmed char siu slices and greens",
+    "attrs": [
+     "thick flat yellow-brown noodles",
+     "little broth",
+     "red-rimmed char siu slices",
+     "square yellow crackers on top"
+    ],
+    "units": [
+     [
+      "bowl",
+      "bowls"
+     ]
+    ],
+    "multi_units": null,
+    "attrs_vi": [
+     "sợi to dẹt màu vàng nâu",
+     "ít nước dùng",
+     "lát thịt xá xíu viền đỏ",
+     "miếng bánh vàng hình vuông trên mặt"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "quang noodles",
+     "cue": "sợi vàng nâu, lát xá xíu viền đỏ"
+    }
+   ],
+   "ov_split": "novel",
+   "nutrition_key": "cao lầu",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 109,
+     "boxes": 202
+    },
+    "val": {
+     "images": 13,
+     "boxes": 24
+    },
+    "test": {
+     "images": 15,
+     "boxes": 29
+    }
+   },
+   "name_vi": "cao lầu"
+  },
+  {
+   "id": 22,
+   "name": "pork offal congee",
+   "en": "pork offal congee",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "rice",
+   "visual": {
+    "definition": "bowl of thick gray-brown porridge topped with offal slices, blood sausage and scallions",
+    "attrs": [
+     "thick gray-brown porridge",
+     "offal and blood sausage slices on top",
+     "sprinkled with scallions and pepper",
+     "thick porridge surface"
+    ],
+    "units": [
+     [
+      "bowl",
+      "bowls"
+     ]
+    ],
+    "multi_units": null,
+    "attrs_vi": [
+     "cháo sánh màu xám nâu",
+     "lát lòng và dồi xếp trên mặt",
+     "rắc hành lá và tiêu",
+     "mặt cháo đặc"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "crab soup",
+     "cue": "cháo xám nâu, lát lòng và dồi"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "cháo lòng",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 133,
+     "boxes": 194
+    },
+    "val": {
+     "images": 17,
+     "boxes": 28
+    },
+    "test": {
+     "images": 17,
+     "boxes": 25
+    }
+   },
+   "name_vi": "cháo lòng"
+  },
+  {
+   "id": 23,
+   "name": "vietnamese pork ham",
+   "en": "vietnamese pork roll (giò lụa)",
+   "aliases": [
+    "giò lụa",
+    "chả lụa"
+   ],
+   "group": "dish",
+   "supercategory": "meat",
+   "visual": {
+    "definition": "light pink pork roll with a smooth cut face, wrapped in banana leaf, cut into slices or rounds",
+    "attrs": [
+     "light pink pork roll",
+     "cut into slices or rounds",
+     "wrapped in green banana leaf",
+     "smooth cut face with small holes"
+    ],
+    "units": [
+     [
+      "serving",
+      "servings"
+     ],
+     [
+      "plate",
+      "plates"
+     ]
+    ],
+    "multi_units": [
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "khoanh giò màu hồng nhạt",
+     "cắt lát hoặc khoanh tròn",
+     "lá chuối xanh bọc ngoài",
+     "mặt cắt mịn có lỗ nhỏ"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "fermented pork",
+     "cue": "khoanh to cắt lát, mặt cắt mịn"
+    },
+    {
+     "name": "fried spring rolls",
+     "cue": "khoanh giò hồng mặt cắt mịn"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "chả",
+   "label_notes": "Trong nhãn ViFood, lớp này là giò lụa / chả lụa (khoanh giò hồng bọc lá chuối), không phải cuốn chiên. Cuốn chiên được gán nhãn nem rán. Tên lớp giữ nguyên để khớp nguồn CVAT.",
+   "stats": {
+    "train": {
+     "images": 139,
+     "boxes": 241
+    },
+    "val": {
+     "images": 17,
+     "boxes": 27
+    },
+    "test": {
+     "images": 18,
+     "boxes": 40
+    }
+   },
+   "name_vi": "chả giò"
+  },
+  {
+   "id": 24,
+   "name": "whole crab",
+   "en": "crab",
+   "aliases": [
+    "cua hấp"
+   ],
+   "group": "dish",
+   "supercategory": "seafood",
+   "visual": {
+    "definition": "red-orange shell with two big claws and long spread legs, placed whole on a plate",
+    "attrs": [
+     "red-orange shell",
+     "two big claws",
+     "long legs spread out",
+     "placed whole on a plate"
+    ],
+    "units": [
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "multi_units": [
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "mai màu đỏ cam",
+     "hai càng to",
+     "chân dài xòe ra",
+     "đặt nguyên con trên đĩa"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "crab soup",
+     "cue": "nguyên con mai đỏ cam"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "cua",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 59,
+     "boxes": 93
+    },
+    "val": {
+     "images": 8,
+     "boxes": 17
+    },
+    "test": {
+     "images": 7,
+     "boxes": 11
+    }
+   },
+   "name_vi": "cua"
+  },
+  {
+   "id": 25,
+   "name": "fried fish",
+   "en": "fried fish",
+   "aliases": [
+    "cá rán"
+   ],
+   "group": "dish",
+   "supercategory": "seafood",
+   "visual": {
+    "definition": "whole fish or fish chunks with golden-brown skin, fins and tail intact",
+    "attrs": [
+     "whole or cut into chunks",
+     "golden-brown skin",
+     "fins and tail intact",
+     "topped with sauce or scallions"
+    ],
+    "units": [
+     [
+      "serving",
+      "servings"
+     ],
+     [
+      "plate",
+      "plates"
+     ]
+    ],
+    "multi_units": [
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "nguyên con hoặc cắt khúc",
+     "da màu vàng nâu",
+     "vây và đuôi còn nguyên",
+     "rưới sốt hoặc rắc hành"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "roasted chicken",
+     "cue": "thân cá có vây và đuôi"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "cá chiên",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 71,
+     "boxes": 121
+    },
+    "val": {
+     "images": 9,
+     "boxes": 12
+    },
+    "test": {
+     "images": 9,
+     "boxes": 9
+    }
+   },
+   "name_vi": "cá chiên"
+  },
+  {
+   "id": 26,
+   "name": "fried rice",
+   "en": "fried rice",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "rice",
+   "visual": {
+    "definition": "plate of loose yellow rice grains mixed with green peas and carrots, shaped into a mound",
+    "attrs": [
+     "loose yellow rice grains",
+     "mixed with green peas and diced orange carrots",
+     "shaped into a round mound",
+     "sprinkled with scallions"
+    ],
+    "units": [
+     [
+      "plate",
+      "plates"
+     ],
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "multi_units": [
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "hạt cơm rời màu vàng",
+     "lẫn hạt đậu xanh và cà rốt đỏ",
+     "đắp thành khối tròn",
+     "rắc hành lá"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "sticky rice",
+     "cue": "hạt cơm rời lẫn rau củ"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "cơm chiên",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 115,
+     "boxes": 138
+    },
+    "val": {
+     "images": 15,
+     "boxes": 15
+    },
+    "test": {
+     "images": 15,
+     "boxes": 19
+    }
+   },
+   "name_vi": "cơm chiên"
+  },
+  {
+   "id": 27,
+   "name": "broken rice",
+   "en": "broken rice",
+   "aliases": [
+    "cơm sườn"
+   ],
+   "group": "dish",
+   "supercategory": "rice",
+   "visual": {
+    "definition": "plate of small white rice grains with a dark-brown grilled pork chop, steamed egg cake and cucumber",
+    "attrs": [
+     "small white rice grains",
+     "dark-brown grilled pork chop",
+     "yellow steamed egg slice",
+     "with cucumber and tomato"
+    ],
+    "units": [
+     [
+      "plate",
+      "plates"
+     ],
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "multi_units": [
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "hạt cơm trắng nhỏ",
+     "miếng sườn nướng nâu sẫm",
+     "lát trứng hấp màu vàng",
+     "kèm dưa chuột và cà chua"
+    ]
+   },
+   "confusable_with": [],
+   "ov_split": "novel",
+   "nutrition_key": "cơm tấm",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 77,
+     "boxes": 102
+    },
+    "val": {
+     "images": 10,
+     "boxes": 15
+    },
+    "test": {
+     "images": 11,
+     "boxes": 13
+    }
+   },
+   "name_vi": "cơm tấm"
+  },
+  {
+   "id": 28,
+   "name": "boiled chicken",
+   "en": "boiled chicken",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "meat",
+   "visual": {
+    "definition": "pale yellow-skinned chicken chopped into pieces on a plate, white meat at the cut faces",
+    "attrs": [
+     "pale yellow skin",
+     "chopped into pieces on the plate",
+     "sprinkled with shredded lime leaves",
+     "white meat at the cut faces"
+    ],
+    "units": [
+     [
+      "plate",
+      "plates"
+     ],
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "multi_units": [
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "da màu vàng nhạt",
+     "chặt miếng xếp trên đĩa",
+     "rắc lá chanh thái sợi",
+     "thịt trắng ở mặt cắt"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "roasted chicken",
+     "cue": "da vàng nhạt, thịt trắng"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "gà luộc",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 90,
+     "boxes": 168
+    },
+    "val": {
+     "images": 11,
+     "boxes": 11
+    },
+    "test": {
+     "images": 9,
+     "boxes": 11
+    }
+   },
+   "name_vi": "gà luộc"
+  },
+  {
+   "id": 29,
+   "name": "shredded salad",
+   "en": "vietnamese salad",
+   "aliases": [
+    "nộm"
+   ],
+   "group": "dish",
+   "supercategory": "roll_salad",
+   "visual": {
+    "definition": "colorful shredded vegetables mixed with green leaves, sprinkled with roasted peanuts",
+    "attrs": [
+     "colorful shredded vegetables",
+     "mixed with green leaves",
+     "sprinkled with roasted peanuts",
+     "shredded carrot and red chili"
+    ],
+    "units": [
+     [
+      "plate",
+      "plates"
+     ],
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "multi_units": [
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "rau củ thái sợi nhiều màu",
+     "trộn lá rau xanh",
+     "rắc lạc rang",
+     "sợi cà rốt và ớt đỏ"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "fresh spring rolls",
+     "cue": "sợi rau củ trộn trên đĩa"
+    },
+    {
+     "name": "fresh herbs and greens",
+     "cue": "sợi rau củ nhiều màu, rắc lạc"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "gỏi",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 66,
+     "boxes": 71
+    },
+    "val": {
+     "images": 7,
+     "boxes": 7
+    },
+    "test": {
+     "images": 9,
+     "boxes": 10
+    }
+   },
+   "name_vi": "gỏi"
+  },
+  {
+   "id": 30,
+   "name": "fresh spring rolls",
+   "en": "fresh spring rolls",
+   "aliases": [
+    "nem cuốn"
+   ],
+   "group": "dish",
+   "supercategory": "roll_salad",
+   "visual": {
+    "definition": "long rolls with a translucent wrapper showing pink-orange and green fillings",
+    "attrs": [
+     "translucent wrapper",
+     "pink-orange and green fillings showing inside",
+     "long cylindrical rolls",
+     "lined up on the plate"
+    ],
+    "units": [
+     [
+      "serving",
+      "servings"
+     ],
+     [
+      "plate",
+      "plates"
+     ]
+    ],
+    "multi_units": [
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "vỏ trong mờ",
+     "lộ màu hồng cam và lá xanh bên trong",
+     "cuộn dài hình trụ",
+     "xếp hàng trên đĩa"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "fermented pork",
+     "cue": "vỏ trong mờ lộ nhân bên trong"
+    },
+    {
+     "name": "fried spring rolls",
+     "cue": "vỏ trong mờ"
+    },
+    {
+     "name": "shredded salad",
+     "cue": "cuộn dài vỏ trong mờ"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "gỏi cuốn",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 115,
+     "boxes": 400
+    },
+    "val": {
+     "images": 15,
+     "boxes": 44
+    },
+    "test": {
+     "images": 16,
+     "boxes": 65
+    }
+   },
+   "name_vi": "gỏi cuốn"
+  },
+  {
+   "id": 31,
+   "name": "roast pork",
+   "en": "roast pork",
+   "aliases": [
+    "thịt quay",
+    "sườn nướng"
+   ],
+   "group": "dish",
+   "supercategory": "meat",
+   "visual": {
+    "definition": "reddish-brown meat with a charred surface or puffed golden skin, cut into thick slices",
+    "attrs": [
+     "reddish-brown meat pieces",
+     "charred surface or puffed golden skin",
+     "cut into thick slices",
+     "glossy with oil"
+    ],
+    "units": [
+     [
+      "serving",
+      "servings"
+     ],
+     [
+      "plate",
+      "plates"
+     ]
+    ],
+    "multi_units": [
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "miếng thịt màu nâu đỏ",
+     "bề mặt cháy xém hoặc da vàng phồng",
+     "thái lát dày",
+     "bóng dầu"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "roasted chicken",
+     "cue": "thịt thái lát dày, da phồng hoặc cháy xém"
+    },
+    {
+     "name": "sliced beef",
+     "cue": "lát dày, da phồng hoặc cháy xém"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "heo quay",
+   "label_notes": "Gồm cả thịt heo nướng và sườn nướng.",
+   "stats": {
+    "train": {
+     "images": 121,
+     "boxes": 204
+    },
+    "val": {
+     "images": 16,
+     "boxes": 22
+    },
+    "test": {
+     "images": 16,
+     "boxes": 22
+    }
+   },
+   "name_vi": "heo quay"
+  },
+  {
+   "id": 32,
+   "name": "oyster",
+   "en": "oyster",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "seafood",
+   "visual": {
+    "definition": "gray-white meat on a rough gray half shell, often topped with scallion oil",
+    "attrs": [
+     "rough gray shell",
+     "resting on a half shell",
+     "gray-white meat",
+     "topped with scallion oil or a yellow topping"
+    ],
+    "units": [
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "multi_units": [
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "vỏ xám sần sùi",
+     "nằm trên một nửa vỏ",
+     "thịt màu trắng xám",
+     "phủ mỡ hành hoặc lớp phủ màu vàng"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "clams and scallops",
+     "cue": "nửa vỏ lớn sần sùi, thịt trắng xám"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "hàu",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 94,
+     "boxes": 373
+    },
+    "val": {
+     "images": 12,
+     "boxes": 49
+    },
+    "test": {
+     "images": 12,
+     "boxes": 33
+    }
+   },
+   "name_vi": "hàu"
+  },
+  {
+   "id": 33,
+   "name": "hu tieu noodles",
+   "en": "hu tieu noodles",
+   "aliases": [
+    "hủ tíu"
+   ],
+   "group": "dish",
+   "supercategory": "noodle_soup",
+   "visual": {
+    "definition": "bowl of thin translucent noodles in clear broth with quail eggs, meat slices and greens",
+    "attrs": [
+     "thin translucent noodles",
+     "clear broth",
+     "white quail eggs and meat slices",
+     "green leaves on top"
+    ],
+    "units": [
+     [
+      "bowl",
+      "bowls"
+     ]
+    ],
+    "multi_units": null,
+    "attrs_vi": [
+     "sợi nhỏ trong",
+     "nước dùng trong",
+     "trứng cút trắng và lát thịt",
+     "lá xanh trên mặt"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "pho noodle soup",
+     "cue": "sợi nhỏ trong, có trứng cút"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "hủ tiếu",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 84,
+     "boxes": 132
+    },
+    "val": {
+     "images": 11,
+     "boxes": 16
+    },
+    "test": {
+     "images": 11,
+     "boxes": 30
+    }
+   },
+   "name_vi": "hủ tiếu"
+  },
+  {
+   "id": 34,
+   "name": "hotpot",
+   "en": "hotpot",
+   "aliases": [
+    "lẩu thái"
+   ],
+   "group": "dish",
+   "supercategory": "soup_pot",
+   "visual": {
+    "definition": "large metal pot in the middle of the table, broth with many ingredients and vegetables floating on top",
+    "attrs": [
+     "large pot in the middle of the table",
+     "orange-red or clear broth",
+     "many vegetables and ingredients floating",
+     "metal pot"
+    ],
+    "units": [
+     [
+      "pot",
+      "pots"
+     ]
+    ],
+    "multi_units": null,
+    "attrs_vi": [
+     "nồi lớn đặt giữa bàn",
+     "nước dùng màu đỏ cam hoặc trong",
+     "nhiều rau và nguyên liệu nổi trên mặt",
+     "nồi kim loại"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "clear vegetable soup",
+     "cue": "nồi kim loại lớn giữa bàn"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "lẩu",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 31,
+     "boxes": 36
+    },
+    "val": {
+     "images": 4,
+     "boxes": 5
+    },
+    "test": {
+     "images": 5,
+     "boxes": 5
+    }
+   },
+   "name_vi": "lẩu"
+  },
+  {
+   "id": 35,
+   "name": "quang noodles",
+   "en": "quang noodles",
+   "aliases": [
+    "mỳ Quảng"
+   ],
+   "group": "dish",
+   "supercategory": "noodle_soup",
+   "visual": {
+    "definition": "bowl of flat yellow noodles with a little orange broth, quail eggs, roasted peanuts and broken rice crackers",
+    "attrs": [
+     "flat yellow noodles",
+     "a little orange broth",
+     "quail eggs and roasted peanuts",
+     "broken yellow rice crackers"
+    ],
+    "units": [
+     [
+      "bowl",
+      "bowls"
+     ]
+    ],
+    "multi_units": null,
+    "attrs_vi": [
+     "sợi dẹt màu vàng",
+     "ít nước dùng màu cam",
+     "trứng cút và lạc rang",
+     "miếng bánh đa vàng bẻ nhỏ"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "cao lau noodles",
+     "cue": "sợi dẹt vàng, trứng cút, bánh đa bẻ nhỏ"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "mì Quảng",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 176,
+     "boxes": 225
+    },
+    "val": {
+     "images": 22,
+     "boxes": 29
+    },
+    "test": {
+     "images": 22,
+     "boxes": 24
+    }
+   },
+   "name_vi": "mì Quảng"
+  },
+  {
+   "id": 36,
+   "name": "squid",
+   "en": "squid",
+   "aliases": [
+    "mực xào",
+    "mực nướng"
+   ],
+   "group": "dish",
+   "supercategory": "seafood",
+   "visual": {
+    "definition": "pinkish-white body, cut into rings or whole with long curled tentacles",
+    "attrs": [
+     "pinkish-white body",
+     "cut into rings or whole",
+     "long curled tentacles",
+     "stir-fried with onion and chili"
+    ],
+    "units": [
+     [
+      "plate",
+      "plates"
+     ],
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "multi_units": [
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "thân màu trắng hồng",
+     "khoanh tròn hoặc nguyên con",
+     "râu dài cong",
+     "xào với hành và ớt"
+    ]
+   },
+   "confusable_with": [],
+   "ov_split": "base",
+   "nutrition_key": "mực",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 73,
+     "boxes": 132
+    },
+    "val": {
+     "images": 10,
+     "boxes": 14
+    },
+    "test": {
+     "images": 10,
+     "boxes": 22
+    }
+   },
+   "name_vi": "mực"
+  },
+  {
+   "id": 37,
+   "name": "fermented pork",
+   "en": "fermented pork",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "meat",
+   "visual": {
+    "definition": "small rectangular blocks wrapped in banana leaf with a pinkish-red cut face, tied with string",
+    "attrs": [
+     "wrapped in green banana leaf",
+     "small rectangular blocks",
+     "pinkish-red cut face",
+     "tied with red string or bamboo strings"
+    ],
+    "units": [
+     [
+      "serving",
+      "servings"
+     ],
+     [
+      "plate",
+      "plates"
+     ]
+    ],
+    "multi_units": [
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "bọc lá chuối xanh",
+     "khối nhỏ hình chữ nhật",
+     "mặt cắt màu hồng đỏ",
+     "buộc dây đỏ hoặc lạt"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "fresh spring rolls",
+     "cue": "khối nhỏ bọc lá chuối, mặt cắt hồng đỏ"
+    },
+    {
+     "name": "vietnamese pork ham",
+     "cue": "khối nhỏ hình chữ nhật buộc dây"
+    }
+   ],
+   "ov_split": "novel",
+   "nutrition_key": "nem chua",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 52,
+     "boxes": 257
+    },
+    "val": {
+     "images": 7,
+     "boxes": 33
+    },
+    "test": {
+     "images": 7,
+     "boxes": 42
+    }
+   },
+   "name_vi": "nem chua"
+  },
+  {
+   "id": 38,
+   "name": "clams and scallops",
+   "en": "clams and scallops",
+   "aliases": [
+    "nghêu",
+    "sò"
+   ],
+   "group": "dish",
+   "supercategory": "seafood",
+   "visual": {
+    "definition": "gray-white ridged bivalve shells, open to show the meat inside",
+    "attrs": [
+     "gray-white bivalve shells",
+     "ridged shells",
+     "open shells showing meat inside",
+     "in a broth with lemongrass"
+    ],
+    "units": [
+     [
+      "plate",
+      "plates"
+     ],
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "multi_units": [
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "vỏ hai mảnh màu trắng xám",
+     "vỏ có gân sọc",
+     "mở miệng lộ thịt bên trong",
+     "nằm trong nước dùng có sả"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "sea snails",
+     "cue": "vỏ hai mảnh có gân sọc"
+    },
+    {
+     "name": "oyster",
+     "cue": "vỏ nhỏ hai mảnh trắng xám"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "ngao sò",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 57,
+     "boxes": 100
+    },
+    "val": {
+     "images": 8,
+     "boxes": 12
+    },
+    "test": {
+     "images": 7,
+     "boxes": 17
+    }
+   },
+   "name_vi": "ngao sò"
+  },
+  {
+   "id": 39,
+   "name": "pho noodle soup",
+   "en": "pho noodle soup",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "noodle_soup",
+   "visual": {
+    "definition": "bowl of flat white rice noodles in clear broth with thin meat slices and chopped scallions",
+    "attrs": [
+     "flat white rice noodles",
+     "clear broth",
+     "thin pinkish-brown meat slices",
+     "chopped green scallions on top"
+    ],
+    "units": [
+     [
+      "bowl",
+      "bowls"
+     ]
+    ],
+    "multi_units": null,
+    "attrs_vi": [
+     "sợi bánh dẹt trắng",
+     "nước dùng trong",
+     "lát thịt mỏng màu nâu hồng",
+     "hành lá xanh thái nhỏ trên mặt"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "hu tieu noodles",
+     "cue": "sợi bánh dẹt trắng, lát thịt mỏng"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "phở",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 121,
+     "boxes": 180
+    },
+    "val": {
+     "images": 16,
+     "boxes": 22
+    },
+    "test": {
+     "images": 15,
+     "boxes": 18
+    }
+   },
+   "name_vi": "phở"
+  },
+  {
+   "id": 40,
+   "name": "fresh herbs and greens",
+   "en": "fresh herbs and greens",
+   "aliases": [],
+   "group": "side",
+   "supercategory": "vegetable",
+   "visual": {
+    "definition": "many kinds of green leaves filling a plate or basket, mixed with white bean sprouts",
+    "attrs": [
+     "many kinds of leaves",
+     "mixed with white bean sprouts",
+     "densely piled",
+     "dark and light green leaves"
+    ],
+    "units": [
+     [
+      "plate",
+      "plates"
+     ],
+     [
+      "basket",
+      "baskets"
+     ]
+    ],
+    "multi_units": null,
+    "attrs_vi": [
+     "nhiều loại lá",
+     "lẫn giá đỗ trắng",
+     "xếp đầy kín",
+     "lá xanh đậm và xanh nhạt"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "shredded salad",
+     "cue": "lá nguyên xanh tươi xếp đầy"
+    },
+    {
+     "name": "boiled vegetables",
+     "cue": "lá tươi nhiều loại"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "rau sống",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 1040,
+     "boxes": 1210
+    },
+    "val": {
+     "images": 130,
+     "boxes": 146
+    },
+    "test": {
+     "images": 131,
+     "boxes": 154
+    }
+   },
+   "name_vi": "rau sống"
+  },
+  {
+   "id": 41,
+   "name": "crab soup",
+   "en": "crab soup",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "soup_pot",
+   "visual": {
+    "definition": "small bowl of thick opaque white soup with quail eggs, black mushroom strands and cilantro",
+    "attrs": [
+     "thick opaque white soup",
+     "white quail eggs",
+     "black mushroom strands",
+     "sprinkled with green cilantro and pepper"
+    ],
+    "units": [
+     [
+      "bowl",
+      "bowls"
+     ],
+     [
+      "small bowl",
+      "small bowls"
+     ]
+    ],
+    "multi_units": null,
+    "attrs_vi": [
+     "súp sánh màu trắng đục",
+     "trứng cút trắng",
+     "sợi nấm đen",
+     "rắc lá ngò xanh và tiêu"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "pork offal congee",
+     "cue": "súp trắng đục, trứng cút, sợi nấm"
+    },
+    {
+     "name": "whole crab",
+     "cue": "chén súp sánh trắng đục"
+    }
+   ],
+   "ov_split": "novel",
+   "nutrition_key": "súp cua",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 57,
+     "boxes": 147
+    },
+    "val": {
+     "images": 7,
+     "boxes": 35
+    },
+    "test": {
+     "images": 7,
+     "boxes": 11
+    }
+   },
+   "name_vi": "súp cua"
+  },
+  {
+   "id": 42,
+   "name": "sliced beef",
+   "en": "beef dish",
+   "aliases": [
+    "bò xào",
+    "bò tái"
+   ],
+   "group": "dish",
+   "supercategory": "meat",
+   "visual": {
+    "definition": "thin reddish-brown meat slices with white fat marbling, raw or stir-fried with onions",
+    "attrs": [
+     "reddish-brown meat slices",
+     "thinly sliced",
+     "white fat marbling",
+     "stir-fried with onions"
+    ],
+    "units": [
+     [
+      "serving",
+      "servings"
+     ],
+     [
+      "plate",
+      "plates"
+     ]
+    ],
+    "multi_units": [
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "lát thịt màu nâu đỏ",
+     "thái mỏng",
+     "vân mỡ trắng",
+     "xào với hành tây"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "roast pork",
+     "cue": "lát mỏng nâu đỏ, vân mỡ trắng"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "thịt bò",
+   "label_notes": "Gồm bò sống thái lát, bò xào, bò kho; thường là lát bò trong tô phở.",
+   "stats": {
+    "train": {
+     "images": 53,
+     "boxes": 60
+    },
+    "val": {
+     "images": 7,
+     "boxes": 7
+    },
+    "test": {
+     "images": 7,
+     "boxes": 11
+    }
+   },
+   "name_vi": "thịt bò"
+  },
+  {
+   "id": 43,
+   "name": "boiled vegetables",
+   "en": "boiled vegetables",
+   "aliases": [],
+   "group": "side",
+   "supercategory": "vegetable",
+   "visual": {
+    "definition": "glossy dark green vegetables, neatly arranged on a plate",
+    "attrs": [
+     "dark green cooked vegetables",
+     "glossy wet leaves",
+     "neatly arranged on the plate",
+     "deep green color"
+    ],
+    "units": [
+     [
+      "plate",
+      "plates"
+     ],
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "multi_units": [
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "rau xanh đậm luộc chín",
+     "lá rau bóng nước",
+     "xếp gọn trên đĩa",
+     "màu xanh thẫm"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "fresh herbs and greens",
+     "cue": "rau chín xanh đậm bóng nước"
+    },
+    {
+     "name": "stir-fried vegetables",
+     "cue": "bóng nước, không dầu"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "rau luộc",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 58,
+     "boxes": 68
+    },
+    "val": {
+     "images": 9,
+     "boxes": 10
+    },
+    "test": {
+     "images": 8,
+     "boxes": 8
+    }
+   },
+   "name_vi": "rau luộc"
+  },
+  {
+   "id": 44,
+   "name": "shrimp",
+   "en": "shrimp",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "seafood",
+   "visual": {
+    "definition": "curved orange-red bodies with shiny shells and long antennae, many arranged on a plate",
+    "attrs": [
+     "curved orange-red bodies",
+     "shiny shells",
+     "long antennae",
+     "many arranged on the plate"
+    ],
+    "units": [
+     [
+      "serving",
+      "servings"
+     ],
+     [
+      "plate",
+      "plates"
+     ]
+    ],
+    "multi_units": [
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "thân cong màu cam đỏ",
+     "vỏ bóng",
+     "râu dài",
+     "xếp nhiều con trên đĩa"
+    ]
+   },
+   "confusable_with": [],
+   "ov_split": "base",
+   "nutrition_key": "tôm",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 160,
+     "boxes": 259
+    },
+    "val": {
+     "images": 20,
+     "boxes": 34
+    },
+    "test": {
+     "images": 21,
+     "boxes": 34
+    }
+   },
+   "name_vi": "tôm"
+  },
+  {
+   "id": 45,
+   "name": "sticky rice",
+   "en": "sticky rice",
+   "aliases": [
+    "xôi xéo",
+    "xôi gấc"
+   ],
+   "group": "dish",
+   "supercategory": "rice",
+   "visual": {
+    "definition": "plate of glutinous rice grains sticking together in a white or yellow mass, often with fried shallots",
+    "attrs": [
+     "grains sticking together in a mass",
+     "white or yellow glutinous rice grains",
+     "sprinkled with golden fried shallots",
+     "heaped on a plate or pressed into a ball"
+    ],
+    "units": [
+     [
+      "plate",
+      "plates"
+     ],
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "multi_units": [
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "hạt nếp dính thành khối",
+     "hạt nếp màu trắng hoặc vàng",
+     "rắc hành phi vàng",
+     "đắp thành đĩa hoặc nắm"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "fried rice",
+     "cue": "hạt nếp dính thành khối"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "xôi xéo",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 137,
+     "boxes": 185
+    },
+    "val": {
+     "images": 19,
+     "boxes": 27
+    },
+    "test": {
+     "images": 16,
+     "boxes": 25
+    }
+   },
+   "name_vi": "xôi"
+  },
+  {
+   "id": 46,
+   "name": "sea snails",
+   "en": "sea snails",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "seafood",
+   "visual": {
+    "definition": "spiral brown shells with spots, many on a plate",
+    "attrs": [
+     "spiral shells",
+     "spotted brown shells",
+     "many on the plate",
+     "stir-fried with lemongrass and chili"
+    ],
+    "units": [
+     [
+      "plate",
+      "plates"
+     ],
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "multi_units": [
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "vỏ xoắn",
+     "vỏ màu nâu có đốm",
+     "nhiều con trong đĩa",
+     "xào với sả và ớt"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "clams and scallops",
+     "cue": "vỏ xoắn có đốm"
+    }
+   ],
+   "ov_split": "novel",
+   "nutrition_key": "ốc",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 85,
+     "boxes": 196
+    },
+    "val": {
+     "images": 11,
+     "boxes": 11
+    },
+    "test": {
+     "images": 11,
+     "boxes": 20
+    }
+   },
+   "name_vi": "ốc"
+  },
+  {
+   "id": 47,
+   "name": "other dish",
+   "en": "other dish",
+   "aliases": [],
+   "group": "catch_all",
+   "supercategory": "other",
+   "visual": {
+    "definition": "a dish outside the named classes; shapes vary",
+    "attrs": [],
+    "units": [
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "multi_units": null,
+    "attrs_vi": []
+   },
+   "confusable_with": [],
+   "ov_split": "base",
+   "nutrition_key": "món ăn khác",
+   "label_notes": "Lớp gom: nhìn rất đa dạng, không có thuộc tính hình thái chung.",
+   "stats": {
+    "train": {
+     "images": 292,
+     "boxes": 487
+    },
+    "val": {
+     "images": 40,
+     "boxes": 65
+    },
+    "test": {
+     "images": 40,
+     "boxes": 65
+    }
+   },
+   "name_vi": "món ăn khác"
+  },
+  {
+   "id": 48,
+   "name": "stir-fried vegetables",
+   "en": "stir-fried vegetables",
+   "aliases": [],
+   "group": "side",
+   "supercategory": "vegetable",
+   "visual": {
+    "definition": "glossy oily green vegetables cut into pieces, mixed with fried garlic",
+    "attrs": [
+     "glossy oily green vegetables",
+     "cut into pieces",
+     "mixed with fried garlic",
+     "arranged on a plate"
+    ],
+    "units": [
+     [
+      "plate",
+      "plates"
+     ],
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "multi_units": [
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "rau xanh bóng dầu",
+     "thái khúc",
+     "lẫn tỏi phi",
+     "xếp trên đĩa"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "boiled vegetables",
+     "cue": "bóng dầu, lẫn tỏi phi"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "rau xào",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 78,
+     "boxes": 88
+    },
+    "val": {
+     "images": 10,
+     "boxes": 12
+    },
+    "test": {
+     "images": 10,
+     "boxes": 11
+    }
+   },
+   "name_vi": "rau xào"
+  },
+  {
+   "id": 49,
+   "name": "dipping sauce",
+   "en": "dipping sauce",
+   "aliases": [
+    "nước chấm",
+    "nước mắm",
+    "mắm tôm"
+   ],
+   "group": "sauce",
+   "supercategory": "sauce",
+   "visual": {
+    "definition": "small bowl of reddish-brown or yellow liquid with red chili slices or minced garlic",
+    "attrs": [
+     "reddish-brown or yellow liquid",
+     "red chili slices floating on top",
+     "mixed with minced garlic"
+    ],
+    "units": [
+     [
+      "small bowl",
+      "small bowls"
+     ]
+    ],
+    "multi_units": null,
+    "attrs_vi": [
+     "nước màu nâu đỏ hoặc vàng",
+     "lát ớt đỏ nổi trên mặt",
+     "lẫn tỏi băm"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "clear vegetable soup",
+     "cue": "chén nhỏ nước màu, lát ớt hoặc tỏi"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "nước chấm",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 1297,
+     "boxes": 1940
+    },
+    "val": {
+     "images": 164,
+     "boxes": 243
+    },
+    "test": {
+     "images": 162,
+     "boxes": 233
+    }
+   },
+   "name_vi": "đồ chấm"
+  },
+  {
+   "id": 50,
+   "name": "roasted chicken",
+   "en": "roasted chicken",
+   "aliases": [
+    "gà nướng"
+   ],
+   "group": "dish",
+   "supercategory": "meat",
+   "visual": {
+    "definition": "chicken pieces with glossy reddish-brown skin, whole legs or large chopped pieces",
+    "attrs": [
+     "glossy reddish-brown skin",
+     "whole legs or large pieces",
+     "oily shiny surface",
+     "chopped into pieces"
+    ],
+    "units": [
+     [
+      "serving",
+      "servings"
+     ],
+     [
+      "plate",
+      "plates"
+     ]
+    ],
+    "multi_units": [
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "da màu nâu đỏ bóng",
+     "nguyên đùi hoặc miếng lớn",
+     "bề mặt bóng dầu",
+     "chặt miếng"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "boiled chicken",
+     "cue": "da nâu đỏ bóng"
+    },
+    {
+     "name": "roast pork",
+     "cue": "miếng có xương gà, da nâu đỏ bóng"
+    },
+    {
+     "name": "fried fish",
+     "cue": "nguyên đùi hoặc miếng gà"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": "gà quay",
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 80,
+     "boxes": 126
+    },
+    "val": {
+     "images": 10,
+     "boxes": 13
+    },
+    "test": {
+     "images": 12,
+     "boxes": 22
+    }
+   },
+   "name_vi": "gà quay"
+  },
+  {
+   "id": 51,
+   "name": "fried spring rolls",
+   "en": "fried spring rolls",
+   "aliases": [],
+   "group": "dish",
+   "supercategory": "roll_salad",
+   "visual": {
+    "definition": "long golden-brown rolls with a blistered wrapper, cut to show the filling",
+    "attrs": [
+     "long golden-brown rolls",
+     "blistered wrapper",
+     "cut into pieces",
+     "filling visible inside"
+    ],
+    "units": [
+     [
+      "serving",
+      "servings"
+     ],
+     [
+      "plate",
+      "plates"
+     ]
+    ],
+    "multi_units": [
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "cuốn dài màu vàng nâu",
+     "vỏ phồng rộp",
+     "cắt khúc",
+     "lộ nhân bên trong"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "fresh spring rolls",
+     "cue": "vỏ chiên vàng nâu phồng rộp"
+    },
+    {
+     "name": "vietnamese pork ham",
+     "cue": "cuốn chiên vàng nâu"
+    },
+    {
+     "name": "fried dough sticks",
+     "cue": "cuốn có nhân, cắt khúc"
+    }
+   ],
+   "ov_split": "base",
+   "nutrition_key": null,
+   "label_notes": "Cuốn chiên vàng (miền Nam gọi là chả giò). Không gộp với lớp chả giò.",
+   "stats": {
+    "train": {
+     "images": 63,
+     "boxes": 179
+    },
+    "val": {
+     "images": 8,
+     "boxes": 31
+    },
+    "test": {
+     "images": 8,
+     "boxes": 12
+    }
+   },
+   "name_vi": "nem rán"
+  },
+  {
+   "id": 52,
+   "name": "dessert",
+   "en": "dessert",
+   "aliases": [
+    "trái cây",
+    "chè"
+   ],
+   "group": "catch_all",
+   "supercategory": "other",
+   "visual": {
+    "definition": "cut fruit, sweet soup in a cup or small cakes; shapes vary",
+    "attrs": [],
+    "units": [
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "multi_units": null,
+    "attrs_vi": []
+   },
+   "confusable_with": [],
+   "ov_split": "base",
+   "nutrition_key": null,
+   "label_notes": "Lớp gom: trái cây, chè, bánh ngọt; không có thuộc tính hình thái chung.",
+   "stats": {
+    "train": {
+     "images": 57,
+     "boxes": 73
+    },
+    "val": {
+     "images": 7,
+     "boxes": 7
+    },
+    "test": {
+     "images": 8,
+     "boxes": 12
+    }
+   },
+   "name_vi": "món tráng miệng"
+  },
+  {
+   "id": 53,
+   "name": "fried dough sticks",
+   "en": "fried dough sticks",
+   "aliases": [
+    "giò cháo quẩy"
+   ],
+   "group": "dish",
+   "supercategory": "banh",
+   "visual": {
+    "definition": "long puffy golden strips of fried dough, two strips joined together",
+    "attrs": [
+     "golden fried dough strips",
+     "two strips joined together",
+     "long and puffy",
+     "several strips stacked"
+    ],
+    "units": [
+     [
+      "serving",
+      "servings"
+     ],
+     [
+      "plate",
+      "plates"
+     ]
+    ],
+    "multi_units": [
+     [
+      "serving",
+      "servings"
+     ]
+    ],
+    "attrs_vi": [
+     "thanh bột chiên màu vàng",
+     "hai thanh dính nhau",
+     "dài và phồng",
+     "xếp nhiều thanh"
+    ]
+   },
+   "confusable_with": [
+    {
+     "name": "fried spring rolls",
+     "cue": "thanh bột phồng rỗng, hai thanh dính nhau"
+    }
+   ],
+   "ov_split": "novel",
+   "nutrition_key": null,
+   "label_notes": "",
+   "stats": {
+    "train": {
+     "images": 77,
+     "boxes": 83
+    },
+    "val": {
+     "images": 10,
+     "boxes": 11
+    },
+    "test": {
+     "images": 10,
+     "boxes": 12
+    }
+   },
+   "name_vi": "quẩy"
+  }
+ ],
+ "note": "Bản tiếng Anh sinh bởi scripts/vifood54/make_en_data.py; name = prompt EN, name_vi = khóa gốc"
+}

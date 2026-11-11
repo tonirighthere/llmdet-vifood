@@ -29,6 +29,7 @@ from mmengine.dataset import Compose, pseudo_collate
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 TASTE = ['thơm ngon', 'vị đậm đà', 'ngọt thanh', 'béo ngậy', 'nóng hổi', 'cay nồng', 'hấp dẫn']
+TASTE_EN = ['delicious', 'rich flavor', 'mildly sweet', 'creamy and rich', 'piping hot', 'very spicy', 'appetizing']
 
 
 def parse_args():
@@ -39,6 +40,7 @@ def parse_args():
     p.add_argument('--out', default=os.path.join(ROOT, 'grounding_data/vifood54/EVAL_GROUNDING.md'))
     p.add_argument('--limit', type=int, default=0, help='chỉ lấy N ảnh đầu (thử nhanh)')
     p.add_argument('--seed', type=int, default=0)
+    p.add_argument('--lang', choices=['vi', 'en'], default='vi', help='ngôn ngữ cụm hương vị chèn cho L2_taste')
     return p.parse_args()
 
 
@@ -111,6 +113,8 @@ def score_entities(pred, gts_by_entity):
 
 def main():
     args = parse_args()
+    if args.lang == 'en':
+        TASTE[:] = TASTE_EN
     rows = [json.loads(l) for l in open(args.ann, encoding='utf-8')]
     if args.limit:
         rows = rows[:args.limit]

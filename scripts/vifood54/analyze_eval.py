@@ -18,6 +18,7 @@ Xuất (Markdown):
 """
 import argparse
 import collections
+import sys
 import contextlib
 import io
 import os
@@ -152,6 +153,12 @@ def main():
         gt = COCO(args.gt)
     cats = {c['id']: c['name'] for c in gt.dataset['categories']}
     name2id = {v: k for k, v in cats.items()}
+    # GT tiếng Anh (annotations_en): WATCH_PAIRS viết theo khóa VI -> tra thêm qua en_names.PROMPT_EN
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'captions'))
+    from en_names import PROMPT_EN
+    for vi, en in PROMPT_EN.items():
+        if en in name2id:
+            name2id.setdefault(vi, name2id[en])
     cat_ids = sorted(cats)
     n_gt = collections.Counter(a['category_id'] for a in gt.dataset['annotations'])
 
