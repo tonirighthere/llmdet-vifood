@@ -32,6 +32,7 @@ Thư mục này lưu trữ chi tiết tiến độ công việc kỹ thuật đ�
 | **01/11/2026** | **Session 21** | Grounding câu (B3 L2 R@1 0.774 vs B1-v2 0.363), B3b tốt nhất (mAP 0.323); thí nghiệm OV base/novel | [2026-10-31_phase3_b3.md](2026-10-31_phase3_b3.md) · [2026-11-01_ov_experiment.md](2026-11-01_ov_experiment.md) |
 | **03/11/2026** | **Session 22** | Pha 6: demo ViFood-54 (54 lớp, B3b, tìm món theo câu, dinh dưỡng 54 món) | [2026-11-03_phase6_app_vifood54.md](2026-11-03_phase6_app_vifood54.md) |
 | **05/11/2026** | **Session 23** | Pha 5 làm lại: bật giám sát LLM (B5), OV giám sát yếu (OV-W), nền LLMDet (B0-LLMDet, B1-L); sửa lỗi chọn region trước aug; caption VLM + duyệt tay; hướng dẫn chạy | [2026-11-05_phase5_lmm_setup.md](2026-11-05_phase5_lmm_setup.md) |
+| **09/11/2026** | **Session 24** | Chuyển pipeline sang tiếng Anh (tên lớp, caption, thuộc tính VLM), gộp nhánh Pha 5, chạy B1-EN → B3b-EN | [2026-11-09_english_pipeline.md](2026-11-09_english_pipeline.md) |
 
 ---
 

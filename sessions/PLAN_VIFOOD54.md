@@ -212,6 +212,7 @@ Inference-only (không tốn train): per-class + nhầm lẫn cho B0/B1/B3, grou
 - `nutrition_vifood_51.json` → `nutrition_vifood54.json`: đổi tên (`bún→bún tươi`, `nước chấm→đồ chấm`, `chả→chả giò`, `xôi xéo→xôi`, `canh chua→canh`), thêm `nem rán`, `quẩy`, `món tráng miệng`.
 - `vlm_discovery.py`: `CANONICAL_51_DISHES` → đọc từ `taxonomy.json`.
 - `app.py`: checkpoint B-tốt-nhất, prompt 54 lớp, bảng kết quả mới, đổi chữ "51 món".
+- Thực hiện: app mới `app_vifood54.py` (không sửa `app.py` cũ). Bổ sung 03/11: Gemini nhìn ảnh trước liệt kê món (`vifood54_vlm.py`), Gemini liệt kê món + viết caption hình thái → detector khoanh box theo caption (grounding như eval_grounding; Gemini lỗi thì prompt 54 lớp). Bỏ cách rút prompt theo Gemini (mất negative, gán nhầm lớp). Chưa đo trên test vì key Gemini hết quota.
 
 ---
 

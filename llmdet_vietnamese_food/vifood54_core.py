@@ -99,12 +99,17 @@ def _iou(a, b):
     return inter / u if u > 0 else 0.0
 
 
-def detect(img_rgb, model_name, thr=0.3):
-    """Nhận diện với prompt đủ 54 lớp. -> list {'name', 'box', 'score'}."""
-    boxes, scores, labels = _run(model_name, img_rgb, tuple(CLASS_NAMES))
-    items = [{'name': CLASS_NAMES[int(l)], 'box': [float(v) for v in b], 'score': float(s)}
-             for b, s, l in zip(boxes, scores, labels) if s >= thr]
-    return _nms(items)
+def detect(img_rgb, model_name, thr=0.3, classes=None, return_best=False):
+    """Nhận diện với prompt là `classes` (mặc định đủ 54 lớp, giống lúc đánh giá).
+    -> list {'name', 'box', 'score'}; return_best thêm dict tên lớp -> điểm box cao nhất."""
+    classes = list(classes or CLASS_NAMES)
+    boxes, scores, labels = _run(model_name, img_rgb, tuple(classes))
+    best = {}
+    for s, l in zip(scores, labels):
+        best[classes[int(l)]] = max(best.get(classes[int(l)], 0.0), float(s))
+    items = _nms([{'name': classes[int(l)], 'box': [float(v) for v in b], 'score': float(s)}
+                  for b, s, l in zip(boxes, scores, labels) if s >= thr])
+    return (items, best) if return_best else items
 
 
 def parse_sentence(sentence):

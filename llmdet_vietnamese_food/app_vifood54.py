@@ -4,7 +4,8 @@ app_vifood54.py
 ===============
 Demo ViFood-54 (Pha 6): Grounding DINO Swin-T fine-tune trên 54 món Việt.
 
-  Tab 1  Nhận diện 54 món + ước lượng dinh dưỡng (prompt đủ 54 tên lớp, như lúc đánh giá)
+  Tab 1  Nhận diện 54 món + dinh dưỡng: Gemini liệt kê món và viết caption hình thái, detector khoanh box
+         cho từng tên món trong caption (caption sửa được, khoanh lại không gọi Gemini)
   Tab 2  Tìm món theo câu tiếng Việt ("tô phở ở bên trái và chén nước chấm có ớt")
   Tab 3  Kết quả thực nghiệm
   Tab 4  Từ điển 54 món & dinh dưỡng
@@ -25,6 +26,7 @@ from mmengine.registry import init_default_scope  # noqa: E402
 
 init_default_scope('mmdet')
 import vifood54_core as core  # noqa: E402
+import vifood54_vlm as vlm_mod  # noqa: E402
 
 NUTRITION = core.Nutrition()
 DEFAULT_MODEL = next(iter(core.MODELS))
@@ -65,16 +67,72 @@ def nutrition_html(portions):
 
 # ───────────────────────────── handlers ─────────────────────────────
 
-def run_detect(image, thr, model_name):
-    if image is None:
-        return None, "<div style='color:#ef4444'>Hãy tải ảnh lên.</div>", ''
-    t0 = time.time()
-    items = core.detect(image, model_name, thr)
-    ms = (time.time() - t0) * 1000
+def gemini_md(vlm, items, caption, warnings):
+    if vlm['error']:
+        return f"**Gemini:** ⚠️ {vlm['error']} Đã dùng prompt đủ 54 lớp (không có caption)."
+    found = {}
+    for i in items:
+        found[i['name']] = found.get(i['name'], 0) + 1
+    when = 'cache' if vlm['cached'] else f"{vlm['ms'] / 1000:.1f} s"
+    best = {}
+    for i in items:
+        best[i['name']] = max(best.get(i['name'], 0), i['score'])
+    lines = [f"**Gemini** ({vlm['model']}, {when}): {vlm['description']}", '',
+             '| Món Gemini thấy | Vị trí | Gemini đếm | Box detector | Điểm cao nhất |', '|---|---|---|---|---|']
+    for d in vlm['dishes']:
+        sc = best.get(d['name'])
+        lines.append(f"| {d['name']} | {d.get('position') or '—'} | {d['count']} | {found.get(d['name'], 0)} | "
+                     f"{f'{sc:.2f}' if sc else 'không tìm thấy'} |")
+    if vlm['other']:
+        lines.append(f"\nNgoài 54 lớp (không khoanh): {', '.join(vlm['other'])}")
+    if warnings:
+        lines.append('\nCảnh báo caption: ' + '; '.join(warnings))
+    return '\n'.join(lines)
+
+
+def _ground_caption(image, caption, dishes, thr, model_name):
+    caption, warnings = vlm_mod.prepare_caption(caption, dishes)
+    if not core.parse_sentence(caption):
+        return caption, warnings, []
+    _, items = core.ground(image, model_name, caption, thr)
+    return caption, warnings, vlm_mod.keep_counts(items, dishes)
+
+
+def _render(image, items, vlm, caption, warnings, info):
     portions = [dict(NUTRITION.portion(i['name'], i['box'], image.shape), score=i['score']) for i in items]
     vis = core.draw(image, items, [f"{i['name']} {i['score']:.2f}" for i in items])
     names = sorted({i['name'] for i in items})
-    return vis, nutrition_html(portions), f"⏱️ {ms:.0f} ms · {len(items)} box · {len(names)} món: {', '.join(names) or '—'}"
+    info += f" · {len(items)} box · {len(names)} món: {', '.join(names) or '—'}"
+    return vis, nutrition_html(portions), info, gemini_md(vlm, items, caption, warnings), caption, vlm
+
+
+def run_detect(image, thr, model_name):
+    """Gemini liệt kê món + viết caption hình thái -> detector khoanh box cho từng tên món trong caption
+    (như eval_grounding), giữ tối đa số box Gemini đếm. Gemini lỗi -> prompt đủ 54 lớp."""
+    if image is None:
+        return None, "<div style='color:#ef4444'>Hãy tải ảnh lên.</div>", '', '', '', None
+    t0 = time.time()
+    vlm = vlm_mod.describe(image)
+    t1 = time.time()
+    gem = 'Gemini cache' if vlm['cached'] else f"Gemini {(t1 - t0) * 1000:.0f} ms"
+    if vlm['error']:
+        items = core.detect(image, model_name, thr)
+        return _render(image, items, vlm, '', [], f"⏱️ {gem} (lỗi) + detector {(time.time() - t1) * 1000:.0f} ms "
+                                                 f"(prompt 54 lớp)")
+    caption, warnings, items = _ground_caption(image, vlm['caption'], vlm['dishes'], thr, model_name)
+    return _render(image, items, vlm, caption, warnings,
+                   f"⏱️ {gem} + detector {(time.time() - t1) * 1000:.0f} ms (theo caption)")
+
+
+def run_recaption(image, caption, thr, model_name, vlm):
+    """Khoanh lại theo caption người dùng sửa, không gọi lại Gemini."""
+    if image is None:
+        return None, "<div style='color:#ef4444'>Hãy tải ảnh lên.</div>", '', '', caption, vlm
+    vlm = vlm or dict(dishes=[], other=[], description='', model='—', ms=0, cached=True, error=None)
+    t1 = time.time()
+    caption, warnings, items = _ground_caption(image, caption, [] if vlm['error'] else vlm['dishes'], thr, model_name)
+    vlm = dict(vlm, error=None)
+    return _render(image, items, vlm, caption, warnings, f"⏱️ detector {(time.time() - t1) * 1000:.0f} ms (caption đã sửa)")
 
 
 def run_ground(image, sentence, thr, model_name):
@@ -142,6 +200,9 @@ with gr.Blocks(title='ViFood-54 · Grounding & Dinh dưỡng', theme=gr.themes.S
             with gr.Row():
                 with gr.Column(scale=5):
                     d_img = gr.Image(type='numpy', label='Ảnh bữa ăn', sources=['upload', 'webcam', 'clipboard'])
+                    gr.Markdown("<small>Ảnh được gửi lên Google Gemini API: Gemini liệt kê món (chọn trong 54 lớp) và "
+                                "viết caption hình thái (số lượng, vị trí, đặc điểm nhìn thấy); detector khoanh box cho "
+                                "từng tên món trong caption. Gemini lỗi thì dùng prompt đủ 54 lớp.</small>")
                     with gr.Row():
                         d_thr = gr.Slider(0.1, 0.8, value=0.3, step=0.05, label='Ngưỡng tin cậy')
                         d_model = gr.Dropdown(list(core.MODELS), value=DEFAULT_MODEL, label='Mô hình')
@@ -150,8 +211,14 @@ with gr.Blocks(title='ViFood-54 · Grounding & Dinh dưỡng', theme=gr.themes.S
                 with gr.Column(scale=7):
                     d_info = gr.Markdown()
                     d_out = gr.Image(type='numpy', label='Kết quả')
+                    d_cap = gr.Textbox(label='Caption Gemini viết (sửa được rồi khoanh lại)', lines=3)
+                    d_rebtn = gr.Button('Khoanh lại theo caption này')
+                    d_vlm = gr.Markdown()
                     d_html = gr.HTML()
-            d_btn.click(run_detect, [d_img, d_thr, d_model], [d_out, d_html, d_info])
+                    d_state = gr.State(None)
+            outs = [d_out, d_html, d_info, d_vlm, d_cap, d_state]
+            d_btn.click(run_detect, [d_img, d_thr, d_model], outs)
+            d_rebtn.click(run_recaption, [d_img, d_cap, d_thr, d_model, d_state], outs)
 
         with gr.TabItem('💬 Tìm món theo câu'):
             gr.Markdown('Viết một câu có tên món (hoặc tên gọi khác như *nước chấm*, *giò lụa*, *nộm*). Model khoanh '
