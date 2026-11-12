@@ -373,6 +373,7 @@ class GroundingDINO(DINO):
                  num_region_caption=0,
                  lmm_grad_ckpt=False,
                  lmm_sparse_logits=False,
+                 freeze_detector=False,
                  use_p5_input=True,
                  use_p4_input=True,
                  use_query_input=False,
@@ -496,6 +497,15 @@ class GroundingDINO(DINO):
                 self.p5_grid_box = torch.cat([grid[:-1, :-1], grid[1:, 1:]], dim=-1).flatten(0, 1)
 
             self.img_idx = 0
+
+            if freeze_detector:
+                # Step 1 của LLMDet (căn chỉnh): chỉ học phần nối detector -> LLM (connector, LoRA, cross-attn),
+                # detector đứng yên để loss caption lúc đầu còn cao không phá đặc trưng đã fine-tune.
+                lmm_prefixes = ('lmm.', 'connector.', 'region_connector.', 'image_seperate.', 'img_sep.',
+                                'ref_point_head.')
+                for name, param in self.named_parameters():
+                    if not name.startswith(lmm_prefixes):
+                        param.requires_grad_(False)
 
 
     def _init_layers(self) -> None:

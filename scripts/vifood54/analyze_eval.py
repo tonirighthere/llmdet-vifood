@@ -21,6 +21,7 @@ import collections
 import sys
 import contextlib
 import io
+import json
 import os
 import pickle
 
@@ -56,7 +57,26 @@ def parse_args():
     p.add_argument('--iou-thr', type=float, default=0.5)
     p.add_argument('--bootstrap', type=int, default=200)
     p.add_argument('--seed', type=int, default=0)
+    p.add_argument('--taxonomy', default=None,
+                   help='taxonomy.json có stats.train.images (mặc định: cùng thư mục với --gt) -> AP theo tần suất lớp')
+    p.add_argument('--rare-max', type=int, default=60, help='lớp hiếm: số ảnh train <= ngưỡng này')
+    p.add_argument('--freq-min', type=int, default=151, help='lớp phổ biến: số ảnh train >= ngưỡng này')
     return p.parse_args()
+
+
+def freq_groups(tax_path, cat_ids, rare_max, freq_min):
+    """Chia lớp theo số ảnh train (tương ứng APr/APc/APf của LVIS; ngưỡng riêng vì ViFood-54 không có lớp <= 10 ảnh)."""
+    if not os.path.exists(tax_path):
+        return None
+    with open(tax_path, encoding='utf-8') as f:
+        n_train = {c['id']: c.get('stats', {}).get('train', {}).get('images') for c in json.load(f)['classes']}
+    if any(n_train.get(c) is None for c in cat_ids):
+        return None
+    return {
+        f'hiếm (≤{rare_max} ảnh train)': [c for c in cat_ids if n_train[c] <= rare_max],
+        'thường': [c for c in cat_ids if rare_max < n_train[c] < freq_min],
+        f'phổ biến (≥{freq_min})': [c for c in cat_ids if n_train[c] >= freq_min],
+    }
 
 
 def load_dets(path):
@@ -184,6 +204,17 @@ def main():
         s, ci = runs[n]['stats'], runs[n]['ci']
         ci_s = f'{ci[0]:.3f}–{ci[1]:.3f}' if ci is not None else '-'
         L.append(f'| {n} | {s[0]:.3f} | {ci_s} | {s[1]:.3f} | {s[2]:.3f} | {s[3]:.3f} | {s[4]:.3f} | {s[5]:.3f} | {s[8]:.3f} |')
+
+    groups = freq_groups(args.taxonomy or os.path.join(os.path.dirname(args.gt), 'taxonomy.json'),
+                         cat_ids, args.rare_max, args.freq_min)
+    if groups:
+        # trung bình AP các lớp trong nhóm (= cách COCO lấy mAP trên tập lớp con); lớp không có GT test bị bỏ
+        L += ['', '## AP theo tần suất lớp (số ảnh train) — tương ứng APr / APc / APf của LVIS', '',
+              '| Nhóm | số lớp | ' + ' | '.join(f'{n} AP / AP50' for n in names) + ' |', '|---|---|' + '---|' * len(names)]
+        for g, ids in groups.items():
+            cells = ' | '.join(' / '.join(f'{np.nanmean([runs[n]["per_class"][c][k] for c in ids]):.3f}' for k in (0, 1))
+                               for n in names)
+            L.append(f'| {g} | {len(ids)} | {cells} |')
 
     last = names[-1]
     L += ['', f'## AP theo lớp (sắp theo AP của {last}, tăng dần)', '',
