@@ -17,6 +17,7 @@ import argparse
 import datetime
 import json
 import os
+import re
 
 import gradio as gr
 from PIL import Image, ImageDraw, ImageOps
@@ -30,6 +31,12 @@ def load_queue(only_flagged: bool) -> list[dict]:
     if only_flagged:
         rows = [r for r in rows if r['status'] == 'flagged']
     return sorted(rows, key=lambda r: r['status'] != 'flagged')
+
+
+def drop_sentences(row: dict, wrong: str) -> str:
+    """Caption v2 (caption_v2.py): bản Việt dịch 1:1 từng câu -> người duyệt ghi số câu sai, bỏ đúng câu EN tương ứng."""
+    bad = {int(x) for x in re.findall(r'\d+', wrong or '')}
+    return ' '.join(s for i, s in enumerate(row['sentences'], 1) if i not in bad)
 
 
 def render(row: dict, boxes: dict[str, list[dict]]) -> Image.Image:
@@ -53,15 +60,20 @@ def main() -> None:
 
     def show(i: int):
         if i >= len(queue):
-            return None, 'Hết ảnh cần duyệt.', '', '', i
+            return None, 'Hết ảnh cần duyệt.', '', '', '', i
         r = queue[i]
         info = f'**{i + 1}/{len(queue)}** · `{r["filename"]}` · {r["status"]}\n\nMón GT: {", ".join(r["gt"])}\n\n' + \
                '\n'.join(f'- {x}' for x in r['issues'])
-        return render(r, boxes), info, r['caption'], r['raw'], i
+        if r.get('sentences_vi'):  # caption v2: đọc bản Việt, đánh số từng câu
+            info += '\n\n**Bản tiếng Việt (đọc bản này, ghi số câu sai vào ô bên dưới):**\n\n' + \
+                    '\n'.join(f'{k}. {vi}' for k, vi in enumerate(r['sentences_vi'], 1))
+        return render(r, boxes), info, r['caption'], r['raw'], '', i
 
-    def save(i: int, caption: str, status: str):
+    def save(i: int, caption: str, status: str, wrong: str = ''):
         if i < len(queue):
             r = queue[i]
+            if status == 'approved' and wrong.strip() and r.get('sentences'):
+                caption = drop_sentences(r, wrong)
             if status == 'approved' and caption.strip() != r['caption']:
                 status = 'edited'
             with open(REVIEWED, 'a', encoding='utf-8') as f:
@@ -78,14 +90,15 @@ def main() -> None:
             with gr.Column():
                 info = gr.Markdown()
                 caption = gr.Textbox(label='Caption (sửa trực tiếp)', lines=10)
-                raw = gr.Textbox(label='Bản gốc VLM (trước khi lọc)', lines=6, interactive=False)
+                wrong = gr.Textbox(label='Số câu SAI trong bản tiếng Việt (vd: 2, 5) — các câu EN tương ứng sẽ bị bỏ', lines=1)
+                raw = gr.Textbox(label='Bản gốc VLM (trước khi lọc)', lines=4, interactive=False)
                 with gr.Row():
                     ok = gr.Button('Duyệt / Lưu bản sửa', variant='primary')
                     bad = gr.Button('Loại')
                     skip = gr.Button('Bỏ qua')
-        outs = [image, info, caption, raw, idx]
+        outs = [image, info, caption, raw, wrong, idx]
         demo.load(lambda: show(0), outputs=outs)
-        ok.click(lambda i, c: save(i, c, 'approved'), [idx, caption], outs)
+        ok.click(lambda i, c, w: save(i, c, 'approved', w), [idx, caption, wrong], outs)
         bad.click(lambda i, c: save(i, c, 'rejected'), [idx, caption], outs)
         skip.click(lambda i: show(i + 1), [idx], outs)
     demo.launch(server_name='0.0.0.0', server_port=args.port)

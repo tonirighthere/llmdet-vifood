@@ -2,6 +2,9 @@
 """
 app.py
 ======
+[LEGACY — ViFood-51, Exp 1-4] Không chạy được trên repo hiện tại: cần `vlm_discovery.py` (không có trong git) và
+trọng số Exp 4. Demo đang dùng là `app_vifood54.py` (54 lớp, mô hình EN, Gemini, dinh dưỡng + dị ứng).
+
 Hệ Thống Smart Vietnamese Food AI:
   - Tab 1 (🤖 AI Tự Động): VLM-Guided Discovery (Zero-Prompt), phát hiện tự động,
     định vị chính xác bằng Grounding DINO, ước lượng khẩu phần & tính dinh dưỡng bữa ăn.

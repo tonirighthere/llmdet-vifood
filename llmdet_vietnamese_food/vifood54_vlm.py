@@ -63,7 +63,8 @@ PROMPT = f"""Bạn nhận diện món ăn Việt Nam trong ảnh. Danh mục g�
 
 Nhìn kỹ ảnh rồi:
 1. Liệt kê MỌI món thấy rõ, kể cả rau sống, rau luộc, chén nước chấm. "name" phải là đúng một tên lớp trong
-   danh mục (viết y hệt, có dấu). Món không thuộc danh mục -> đưa vào "other". "count": số phần/đĩa/tô/chén/chiếc
+   danh mục (viết y hệt, có dấu). Món không thuộc danh mục -> đưa vào "other" kèm tên tiếng Việt và tên tiếng Anh
+   ngắn gọn mô tả đúng món (ví dụ {{"name_vi": "bún chả", "name_en": "grilled pork with rice noodles"}}). "count": số phần/đĩa/tô/chén/chiếc
    nhìn thấy. "position": vị trí theo người xem ảnh, chọn trong: {', '.join(REGIONS)}, "rải rác trên bàn".
 2. Viết "caption" tiếng Việt mô tả ảnh cho mô hình khoanh vùng, mỗi món một câu ngắn, theo mẫu:
    "Ở bên trái có một tô phở, nước dùng trong, bánh phở trắng và thịt bò tái." /
@@ -76,7 +77,7 @@ Nhìn kỹ ảnh rồi:
    - Không dùng từ hương vị, mùi, cảm giác hay cảm xúc (thơm, ngon, đậm đà, cay, giòn, mềm, hấp dẫn...).
    - Tối đa 120 từ.
 Trả về JSON thuần:
-{{"dishes": [{{"name": "...", "count": 1, "position": "..."}}], "other": ["..."],
+{{"dishes": [{{"name": "...", "count": 1, "position": "..."}}], "other": [{{"name_vi": "...", "name_en": "..."}}],
   "caption": "...", "description": "một câu mô tả bữa ăn"}}"""
 
 def _hash(pil):
@@ -130,12 +131,20 @@ def describe(img_rgb):
             last = f"{m}: {code.group(1) + ' ' if code else ''}{type(e).__name__}"
             print(f'[vifood54_vlm] {last}: {str(e)[:100]}', flush=True)
             continue
-        dishes, other = {}, list(data.get('other') or [])
+        dishes, other, other_open = {}, [], []
+        for o in data.get('other') or []:  # món ngoài 54 lớp: chuỗi (bản cũ) hoặc {name_vi, name_en}
+            vi = (o.get('name_vi') or o.get('name') or '').strip() if isinstance(o, dict) else str(o).strip()
+            en = (o.get('name_en') or '').strip() if isinstance(o, dict) else ''
+            if vi and vi not in other:
+                other.append(vi)
+                other_open.append({'name_vi': vi, 'name_en': en})
         for d in data.get('dishes') or []:
             raw = d.get('name', '') if isinstance(d, dict) else str(d)
             cls = _to_class(raw)
             if cls is None:
-                other.append(raw)
+                if raw and raw not in other:
+                    other.append(raw)
+                    other_open.append({'name_vi': raw, 'name_en': ''})
                 continue
             cnt = int(d.get('count', 1) or 1) if isinstance(d, dict) else 1
             if cls in dishes:
@@ -143,7 +152,7 @@ def describe(img_rgb):
             else:
                 dishes[cls] = {'name': cls, 'count': cnt, 'raw': raw,
                                'position': d.get('position', '') if isinstance(d, dict) else ''}
-        out = dict(dishes=list(dishes.values()), other=other, caption=str(data.get('caption') or '').strip(),
+        out = dict(dishes=list(dishes.values()), other=other, other_open=other_open, caption=str(data.get('caption') or '').strip(),
                    description=data.get('description', ''),
                    model=m, ms=(time.time() - t0) * 1000, cached=False, error=None)
         _CACHE[key] = out

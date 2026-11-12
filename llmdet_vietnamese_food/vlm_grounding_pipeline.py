@@ -2,6 +2,10 @@
 """
 vlm_grounding_pipeline.py
 =========================
+[LEGACY — ViFood-51, Exp 4] Không chạy được trên repo hiện tại: import `vlm_discovery` (không có trong git), trọng số
+`vifood_multi_res800`. Pipeline hiện tại: `vifood54_vlm.py` + `vifood54_core.py` + `app_vifood54.py`;
+đánh giá end-to-end: `scripts/vifood54/eval_vlm_prompt.py`.
+
 Pipeline hợp nhất VLM-guided Food Grounding & Nutrition Analysis:
   1. VLM (Gemini) tự khám phá món ăn từ ảnh (Zero-Prompt User).
   2. Tạo prompt có cấu trúc và kích hoạt Grounding DINO (Exp 4).

@@ -1,7 +1,8 @@
 {
  "_notes": [
   "Khóa = tên lớp ViFood-54 (taxonomy.json). Giá trị cho 1 khẩu phần chuẩn `serving`.",
-  "51 lớp lấy từ nutrition_vifood_51.json qua taxonomy.nutrition_key; estimated=true: nem rán, quẩy, món tráng miệng là ước tính tham khảo, cần đối chiếu Bảng thành phần thực phẩm Việt Nam."
+  "51 lớp lấy từ nutrition_vifood_51.json qua taxonomy.nutrition_key; estimated=true: nem rán, quẩy, món tráng miệng là ước tính tham khảo, cần đối chiếu Bảng thành phần thực phẩm Việt Nam.",
+  "allergens: BẢN NHÁP (12/11) suy từ thành phần điển hình của món trong trường note, CHƯA đối chiếu nguồn và chưa có người duyệt; danh sách rỗng = chưa xác định được, KHÔNG có nghĩa là không có chất gây dị ứng. Món chế biến thực tế có thể khác (vd. xôi lạc có đậu phộng)."
  ],
  "dishes": {
   "bánh bèo": {
@@ -15,7 +16,11 @@
    "category": "Bánh truyền thống",
    "note": "Bột gạo hấp, rắc tôm cháy, tóp mỡ, mỡ hành, chấm nước mắm ngọt",
    "estimated": false,
-   "class_id": 0
+   "class_id": 0,
+   "allergens": [
+    "giáp xác (tôm, cua)",
+    "cá / nước mắm"
+   ]
   },
   "bánh bột lọc": {
    "name_vi": "Bánh bột lọc",
@@ -28,7 +33,11 @@
    "category": "Bánh truyền thống",
    "note": "Bột năng trong suốt bọc nhân tôm thịt đậm vị miền Trung",
    "estimated": false,
-   "class_id": 1
+   "class_id": 1,
+   "allergens": [
+    "giáp xác (tôm, cua)",
+    "cá / nước mắm"
+   ]
   },
   "bánh canh": {
    "name_vi": "Bánh canh",
@@ -41,7 +50,11 @@
    "category": "Món nước",
    "note": "Sợi bánh canh dai mềm cùng nước dùng sệt ngọt từ xương, tôm, cua",
    "estimated": false,
-   "class_id": 2
+   "class_id": 2,
+   "allergens": [
+    "giáp xác (tôm, cua)",
+    "cá / nước mắm"
+   ]
   },
   "bánh chưng": {
    "name_vi": "Bánh chưng",
@@ -54,7 +67,8 @@
    "category": "Món ngày Tết / Xôi nếp",
    "note": "Gạo nếp, đậu xanh, thịt mỡ ướp tiêu gói lá dong truyền thống",
    "estimated": false,
-   "class_id": 3
+   "class_id": 3,
+   "allergens": []
   },
   "bánh cuốn": {
    "name_vi": "Bánh cuốn",
@@ -67,7 +81,10 @@
    "category": "Bánh truyền thống / Điểm tâm",
    "note": "Bánh tráng mỏng nhân mộc nhĩ thịt băm, rắc hành phi, ăn kèm chả quế",
    "estimated": false,
-   "class_id": 4
+   "class_id": 4,
+   "allergens": [
+    "cá / nước mắm"
+   ]
   },
   "bánh căn": {
    "name_vi": "Bánh căn",
@@ -80,7 +97,13 @@
    "category": "Bánh truyền thống",
    "note": "Nướng trong khuôn đất nung giòn đáy, nhân trứng, mực hoặc tôm",
    "estimated": false,
-   "class_id": 5
+   "class_id": 5,
+   "allergens": [
+    "trứng",
+    "nhuyễn thể (mực, ngao, sò, ốc, hàu)",
+    "giáp xác (tôm, cua)",
+    "cá / nước mắm"
+   ]
   },
   "bánh giò": {
    "name_vi": "Bánh giò",
@@ -93,7 +116,10 @@
    "category": "Bánh truyền thống",
    "note": "Bột gạo dẻo mịn bọc nhân thịt băm, mộc nhĩ, trứng cút thơm bùi",
    "estimated": false,
-   "class_id": 6
+   "class_id": 6,
+   "allergens": [
+    "trứng"
+   ]
   },
   "bánh khọt": {
    "name_vi": "Bánh khọt",
@@ -106,7 +132,11 @@
    "category": "Bánh truyền thống",
    "note": "Vỏ giòn rụm với nhân tôm tươi, rắc bột tôm, cuộn rau sống chấm nước mắm",
    "estimated": false,
-   "class_id": 7
+   "class_id": 7,
+   "allergens": [
+    "giáp xác (tôm, cua)",
+    "cá / nước mắm"
+   ]
   },
   "bánh mì": {
    "name_vi": "Bánh mì",
@@ -119,7 +149,12 @@
    "category": "Điểm tâm / Thức ăn nhanh",
    "note": "Vỏ giòn kẹp pate, chả lụa, thịt nướng, dưa chuột, ngò rí, đồ chua",
    "estimated": false,
-   "class_id": 8
+   "class_id": 8,
+   "allergens": [
+    "gluten (lúa mì)",
+    "trứng",
+    "đậu nành"
+   ]
   },
   "bánh pía": {
    "name_vi": "Bánh pía",
@@ -132,7 +167,11 @@
    "category": "Món tráng miệng",
    "note": "Đặc sản Sóc Trăng với lớp vỏ mỏng nhiều lớp nhân sầu riêng và trứng muối",
    "estimated": false,
-   "class_id": 9
+   "class_id": 9,
+   "allergens": [
+    "gluten (lúa mì)",
+    "trứng"
+   ]
   },
   "bánh tráng": {
    "name_vi": "Bánh tráng",
@@ -145,7 +184,11 @@
    "category": "Món ăn vặt",
    "note": "Bánh tráng nướng trứng, tép khô, hành lá hoặc bánh tráng trộn",
    "estimated": false,
-   "class_id": 10
+   "class_id": 10,
+   "allergens": [
+    "trứng",
+    "giáp xác (tôm, cua)"
+   ]
   },
   "bánh tét": {
    "name_vi": "Bánh tét",
@@ -158,7 +201,8 @@
    "category": "Món ngày Tết / Xôi nếp",
    "note": "Bánh nếp gói lá chuối hình trụ, nhân thịt mỡ đậu xanh hoặc nhân chuối",
    "estimated": false,
-   "class_id": 11
+   "class_id": 11,
+   "allergens": []
   },
   "bánh xèo": {
    "name_vi": "Bánh xèo",
@@ -171,7 +215,11 @@
    "category": "Món truyền thống",
    "note": "Vỏ bánh giòn vàng óng nghệ, nhân tôm, thịt ba chỉ, giá đỗ, ăn cùng rau cải cay",
    "estimated": false,
-   "class_id": 12
+   "class_id": 12,
+   "allergens": [
+    "giáp xác (tôm, cua)",
+    "cá / nước mắm"
+   ]
   },
   "bánh đúc": {
    "name_vi": "Bánh đúc",
@@ -184,7 +232,10 @@
    "category": "Bánh truyền thống",
    "note": "Bánh đúc nóng dẻo sánh, thịt băm xào mộc nhĩ, chan nước mắm giấm đường",
    "estimated": false,
-   "class_id": 13
+   "class_id": 13,
+   "allergens": [
+    "cá / nước mắm"
+   ]
   },
   "bún bò Huế": {
    "name_vi": "Bún bò Huế",
@@ -197,7 +248,11 @@
    "category": "Món nước",
    "note": "Nước dùng thơm nồng mùi sả và mắm ruốc, ăn cùng bắp bò, giò heo, chả cua",
    "estimated": false,
-   "class_id": 14
+   "class_id": 14,
+   "allergens": [
+    "giáp xác (tôm, cua)",
+    "cá / nước mắm"
+   ]
   },
   "bún tươi": {
    "name_vi": "Bún",
@@ -210,7 +265,8 @@
    "category": "Nguyên liệu chính",
    "note": "Bún tươi làm từ gạo lên men nhẹ, nền cho nhiều món ăn Việt",
    "estimated": false,
-   "class_id": 15
+   "class_id": 15,
+   "allergens": []
   },
   "bún mắm": {
    "name_vi": "Bún mắm",
@@ -223,7 +279,12 @@
    "category": "Món nước",
    "note": "Đặc sản miền Tây đậm đà mắm cá linh/cá sặc, tôm, mực, thịt quay, cà tím",
    "estimated": false,
-   "class_id": 16
+   "class_id": 16,
+   "allergens": [
+    "cá / nước mắm",
+    "giáp xác (tôm, cua)",
+    "nhuyễn thể (mực, ngao, sò, ốc, hàu)"
+   ]
   },
   "bún riêu": {
    "name_vi": "Bún riêu",
@@ -236,7 +297,13 @@
    "category": "Món nước",
    "note": "Nước dùng vị chua thanh từ cà chua và giấm bỗng, riêu cua đồng béo ngậy",
    "estimated": false,
-   "class_id": 17
+   "class_id": 17,
+   "allergens": [
+    "giáp xác (tôm, cua)",
+    "cá / nước mắm",
+    "đậu nành",
+    "trứng"
+   ]
   },
   "bún thịt nướng": {
    "name_vi": "Bún thịt nướng",
@@ -249,7 +316,12 @@
    "category": "Món khô",
    "note": "Thịt nướng mè sả thơm lừng, chả giò giòn rụm, mỡ hành, đậu phộng, nước mắm chua ngọt",
    "estimated": false,
-   "class_id": 18
+   "class_id": 18,
+   "allergens": [
+    "đậu phộng",
+    "mè",
+    "cá / nước mắm"
+   ]
   },
   "bún đậu mắm tôm": {
    "name_vi": "Bún đậu mắm tôm",
@@ -262,7 +334,11 @@
    "category": "Món mẹt truyền thống",
    "note": "Đậu hũ rán giòn ngoài mềm trong, chả cốm, nem rán, thịt luộc chấm mắm tôm đánh sủi bọt",
    "estimated": false,
-   "class_id": 19
+   "class_id": 19,
+   "allergens": [
+    "đậu nành",
+    "giáp xác (tôm, cua)"
+   ]
   },
   "canh": {
    "name_vi": "Canh chua",
@@ -275,7 +351,11 @@
    "category": "Món canh",
    "note": "Vị chua thanh từ me/dọc mùng, dứa, cà chua, đậu bắp nấu cùng cá lóc hoặc tôm",
    "estimated": false,
-   "class_id": 20
+   "class_id": 20,
+   "allergens": [
+    "cá / nước mắm",
+    "giáp xác (tôm, cua)"
+   ]
   },
   "cao lầu": {
    "name_vi": "Cao lầu",
@@ -288,7 +368,11 @@
    "category": "Món đặc sản Hội An",
    "note": "Sợi mì ngâm nước tro xá xị dai sần sật, thịt xá xíu, tóp mỡ chiên giòn, rau Trà Quế",
    "estimated": false,
-   "class_id": 21
+   "class_id": 21,
+   "allergens": [
+    "đậu nành",
+    "đậu phộng"
+   ]
   },
   "cháo lòng": {
    "name_vi": "Cháo lòng",
@@ -301,7 +385,10 @@
    "category": "Món cháo",
    "note": "Cháo ninh từ nước dùng xương ngọt lịm, dồi tiết luộc, gan, tim, phèo non giòn sần sật",
    "estimated": false,
-   "class_id": 22
+   "class_id": 22,
+   "allergens": [
+    "cá / nước mắm"
+   ]
   },
   "chả giò": {
    "name_vi": "Chả (chả lụa / chả quế)",
@@ -314,7 +401,10 @@
    "category": "Món mặn ăn kèm",
    "note": "Thịt nạc giã nhuyễn quết tiêu mắm gói lá chuối hấp giòn dai tự nhiên",
    "estimated": false,
-   "class_id": 23
+   "class_id": 23,
+   "allergens": [
+    "cá / nước mắm"
+   ]
   },
   "cua": {
    "name_vi": "Cua (cua hấp / sốt)",
@@ -327,7 +417,10 @@
    "category": "Hải sản",
    "note": "Thịt cua biển ngọt chắc, giàu protein tinh khiết và canxi, ít chất béo",
    "estimated": false,
-   "class_id": 24
+   "class_id": 24,
+   "allergens": [
+    "giáp xác (tôm, cua)"
+   ]
   },
   "cá chiên": {
    "name_vi": "Cá chiên",
@@ -340,7 +433,10 @@
    "category": "Món mặn",
    "note": "Cá chiên vàng giòn rụm bên ngoài, thịt bên trong trắng ngọt, chấm mắm gừng hoặc mắm me",
    "estimated": false,
-   "class_id": 25
+   "class_id": 25,
+   "allergens": [
+    "cá / nước mắm"
+   ]
   },
   "cơm chiên": {
    "name_vi": "Cơm chiên",
@@ -353,7 +449,11 @@
    "category": "Món cơm",
    "note": "Cơm rang săn hạt cùng trứng, cà rốt, lạp xưởng, đậu cô ve, hành hoa",
    "estimated": false,
-   "class_id": 26
+   "class_id": 26,
+   "allergens": [
+    "trứng",
+    "đậu nành"
+   ]
   },
   "cơm tấm": {
    "name_vi": "Cơm tấm",
@@ -366,7 +466,11 @@
    "category": "Món cơm",
    "note": "Hạt tấm dẻo bùi ăn cùng sườn nướng mỡ hành, chả trứng hấp, bì heo giòn giòn",
    "estimated": false,
-   "class_id": 27
+   "class_id": 27,
+   "allergens": [
+    "trứng",
+    "cá / nước mắm"
+   ]
   },
   "gà luộc": {
    "name_vi": "Gà luộc",
@@ -379,7 +483,8 @@
    "category": "Món thịt",
    "note": "Thịt gà ta thả vườn da vàng óng giòn sần sật, chấm muối tiêu chanh ớt lá chanh",
    "estimated": false,
-   "class_id": 28
+   "class_id": 28,
+   "allergens": []
   },
   "gỏi": {
    "name_vi": "Gỏi (gỏi ngó sen / gỏi đu đủ)",
@@ -392,7 +497,12 @@
    "category": "Món gỏi / khai vị",
    "note": "Ngó sen giòn sần sật trộn tôm thịt, cà rốt, rau răm, nước mắm giấm đường chua ngọt",
    "estimated": false,
-   "class_id": 29
+   "class_id": 29,
+   "allergens": [
+    "giáp xác (tôm, cua)",
+    "cá / nước mắm",
+    "đậu phộng"
+   ]
   },
   "gỏi cuốn": {
    "name_vi": "Gỏi cuốn",
@@ -405,7 +515,12 @@
    "category": "Món khai vị",
    "note": "Bánh tráng dẻo cuộn tôm tươi, thịt luộc, bún tươi, hẹ, rau thơm chấm tương đen bơ đậu phộng",
    "estimated": false,
-   "class_id": 30
+   "class_id": 30,
+   "allergens": [
+    "giáp xác (tôm, cua)",
+    "đậu phộng",
+    "đậu nành"
+   ]
   },
   "heo quay": {
    "name_vi": "Heo quay",
@@ -418,7 +533,8 @@
    "category": "Món thịt",
    "note": "Da nổ phồng rộp giòn tan, thịt mềm mọng nước ướp ngũ vị hương đậm đà",
    "estimated": false,
-   "class_id": 31
+   "class_id": 31,
+   "allergens": []
   },
   "hàu": {
    "name_vi": "Hàu (hàu nướng mỡ hành/phô mai)",
@@ -431,7 +547,11 @@
    "category": "Hải sản",
    "note": "Hàu sữa béo ngậy nướng than hoa rưới mỡ hành, đậu phộng rang giã nhỏ",
    "estimated": false,
-   "class_id": 32
+   "class_id": 32,
+   "allergens": [
+    "nhuyễn thể (mực, ngao, sò, ốc, hàu)",
+    "đậu phộng"
+   ]
   },
   "hủ tiếu": {
    "name_vi": "Hủ tiếu",
@@ -444,7 +564,12 @@
    "category": "Món nước / khô",
    "note": "Sợi hủ tiếu dai trong, tôm, gan, thịt băm, trứng cút trong nước dùng mực nướng ngọt thanh",
    "estimated": false,
-   "class_id": 33
+   "class_id": 33,
+   "allergens": [
+    "giáp xác (tôm, cua)",
+    "nhuyễn thể (mực, ngao, sò, ốc, hàu)",
+    "trứng"
+   ]
   },
   "lẩu": {
    "name_vi": "Lẩu (lẩu hải sản / lẩu thái)",
@@ -457,7 +582,12 @@
    "category": "Món lẩu",
    "note": "Nồi nước dùng sôi sùng sục nhúng hải sản, bò tươi, nấm tươi và các loại rau xanh",
    "estimated": false,
-   "class_id": 34
+   "class_id": 34,
+   "allergens": [
+    "giáp xác (tôm, cua)",
+    "nhuyễn thể (mực, ngao, sò, ốc, hàu)",
+    "cá / nước mắm"
+   ]
   },
   "mì Quảng": {
    "name_vi": "Mì Quảng",
@@ -470,7 +600,13 @@
    "category": "Món sợi miền Trung",
    "note": "Sợi mì vàng ươm nghệ, nước nhưn sánh đậm đà tôm thịt trứng cút, bánh tráng mè nướng giòn",
    "estimated": false,
-   "class_id": 35
+   "class_id": 35,
+   "allergens": [
+    "giáp xác (tôm, cua)",
+    "trứng",
+    "đậu phộng",
+    "mè"
+   ]
   },
   "mực": {
    "name_vi": "Mực (mực hấp / xào / nướng)",
@@ -483,7 +619,10 @@
    "category": "Hải sản",
    "note": "Mực tươi giòn sần sật, vị ngọt biển cả tự nhiên, giàu kẽm và protein lành mạnh",
    "estimated": false,
-   "class_id": 36
+   "class_id": 36,
+   "allergens": [
+    "nhuyễn thể (mực, ngao, sò, ốc, hàu)"
+   ]
   },
   "nem chua": {
    "name_vi": "Nem chua",
@@ -496,7 +635,8 @@
    "category": "Món ăn vặt / đặc sản",
    "note": "Thịt heo nạc lên men tự nhiên với thính gạo, bì heo, ớt chỉ thiên và lá đinh lăng thơm nồng",
    "estimated": false,
-   "class_id": 37
+   "class_id": 37,
+   "allergens": []
   },
   "ngao sò": {
    "name_vi": "Ngao sò (ngao hấp sả / sò huyết nướng)",
@@ -509,7 +649,10 @@
    "category": "Hải sản",
    "note": "Ngao trắng hấp sả ớt nóng hổi, nước ngọt thanh tự nhiên, thanh nhiệt cơ thể",
    "estimated": false,
-   "class_id": 38
+   "class_id": 38,
+   "allergens": [
+    "nhuyễn thể (mực, ngao, sò, ốc, hàu)"
+   ]
   },
   "phở": {
    "name_vi": "Phở (Phở bò / Phở gà)",
@@ -522,7 +665,10 @@
    "category": "Món nước Quốc hồn Quốc túy",
    "note": "Nước dùng ninh từ xương ống bò quế hồi thảo quả thơm lừng, thịt bò tái mềm mọng",
    "estimated": false,
-   "class_id": 39
+   "class_id": 39,
+   "allergens": [
+    "cá / nước mắm"
+   ]
   },
   "rau sống": {
    "name_vi": "Rau sống",
@@ -535,7 +681,8 @@
    "category": "Rau củ ăn kèm",
    "note": "Xà lách, rau thơm, húng quế, kinh giới, ngò gai, tía tô, giá đỗ cung cấp chất xơ và vitamin dồi dào",
    "estimated": false,
-   "class_id": 40
+   "class_id": 40,
+   "allergens": []
   },
   "súp cua": {
    "name_vi": "Súp cua",
@@ -548,7 +695,11 @@
    "category": "Món súp",
    "note": "Súp sánh đặc bột năng với thịt cua, nấm tuyết, trứng cút, bắp ngọt, rắc ngò tiêu",
    "estimated": false,
-   "class_id": 41
+   "class_id": 41,
+   "allergens": [
+    "giáp xác (tôm, cua)",
+    "trứng"
+   ]
   },
   "thịt bò": {
    "name_vi": "Thịt bò (bò xào / bò nướng)",
@@ -561,7 +712,8 @@
    "category": "Món thịt",
    "note": "Thịt bò mềm đậm đà, giàu sắt và kẽm, tăng cường cơ bắp và năng lượng",
    "estimated": false,
-   "class_id": 42
+   "class_id": 42,
+   "allergens": []
   },
   "rau luộc": {
    "name_vi": "Rau luộc",
@@ -574,7 +726,8 @@
    "category": "Món rau thanh đạm",
    "note": "Rau muống, bắp cải, đậu bắp luộc xanh mướt, chấm kho quẹt hoặc nước mắm tỏi ớt",
    "estimated": false,
-   "class_id": 43
+   "class_id": 43,
+   "allergens": []
   },
   "tôm": {
    "name_vi": "Tôm (tôm hấp / tôm chiên)",
@@ -587,7 +740,10 @@
    "category": "Hải sản",
    "note": "Tôm đỏ au ngọt thịt, giàu astaxanthin chống oxy hóa, ít calo và giàu đạm",
    "estimated": false,
-   "class_id": 44
+   "class_id": 44,
+   "allergens": [
+    "giáp xác (tôm, cua)"
+   ]
   },
   "xôi": {
    "name_vi": "Xôi xéo",
@@ -600,7 +756,8 @@
    "category": "Món xôi điểm tâm",
    "note": "Hạt nếp cái hoa vàng dẻo ngậy nghệ, đậu xanh bào mịn mượt, rưới mỡ gà và hành phi vàng giòn",
    "estimated": false,
-   "class_id": 45
+   "class_id": 45,
+   "allergens": []
   },
   "ốc": {
    "name_vi": "Ốc (ốc luộc / xào me / nướng tiêu)",
@@ -613,7 +770,10 @@
    "category": "Món ốc vỉa hè",
    "note": "Thịt ốc giòn sần sật khêu chấm mắm gừng lá chanh sả cay ấm nồng",
    "estimated": false,
-   "class_id": 46
+   "class_id": 46,
+   "allergens": [
+    "nhuyễn thể (mực, ngao, sò, ốc, hàu)"
+   ]
   },
   "món ăn khác": {
    "name_vi": "Món ăn khác",
@@ -626,7 +786,8 @@
    "category": "Món hỗn hợp",
    "note": "Các món ăn kèm hoặc món truyền thống biến tấu",
    "estimated": false,
-   "class_id": 47
+   "class_id": 47,
+   "allergens": []
   },
   "rau xào": {
    "name_vi": "Rau xào (rau muống xào tỏi / cải xào)",
@@ -639,7 +800,8 @@
    "category": "Món rau",
    "note": "Rau muống xanh mướt xào lửa lớn cùng tỏi đập dập thơm lừng, giòn ngọt tự nhiên",
    "estimated": false,
-   "class_id": 48
+   "class_id": 48,
+   "allergens": []
   },
   "đồ chấm": {
    "name_vi": "Nước chấm (nước mắm chua ngọt / tương)",
@@ -652,7 +814,10 @@
    "category": "Gia vị chấm",
    "note": "Nước mắm cá cơm truyền thống pha đường cát, chanh tươi, tỏi ớt băm nổi trên mặt",
    "estimated": false,
-   "class_id": 49
+   "class_id": 49,
+   "allergens": [
+    "cá / nước mắm"
+   ]
   },
   "gà quay": {
    "name_vi": "Gà quay",
@@ -665,7 +830,8 @@
    "category": "Món thịt",
    "note": "Da gà vàng nâu óng mật ong giòn béo, thịt gà thơm mềm ngấm vị tẩm ướp đặc trưng",
    "estimated": false,
-   "class_id": 50
+   "class_id": 50,
+   "allergens": []
   },
   "nem rán": {
    "name_vi": "Nem rán (chả giò chiên)",
@@ -678,7 +844,10 @@
    "category": "Món chiên",
    "note": "Cuốn bánh đa nem nhân thịt, miến, mộc nhĩ, chiên vàng",
    "estimated": true,
-   "class_id": 51
+   "class_id": 51,
+   "allergens": [
+    "trứng"
+   ]
   },
   "món tráng miệng": {
    "name_vi": "Món tráng miệng",
@@ -691,7 +860,8 @@
    "category": "Tráng miệng",
    "note": "Lớp gom: trái cây, chè, bánh ngọt; giá trị trung bình",
    "estimated": true,
-   "class_id": 52
+   "class_id": 52,
+   "allergens": []
   },
   "quẩy": {
    "name_vi": "Quẩy",
@@ -704,7 +874,10 @@
    "category": "Món chiên ăn kèm",
    "note": "Bột mì nhồi chiên phồng, thường ăn kèm phở, cháo, bún riêu",
    "estimated": true,
-   "class_id": 53
+   "class_id": 53,
+   "allergens": [
+    "gluten (lúa mì)"
+   ]
   }
  }
 }

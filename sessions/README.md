@@ -33,6 +33,7 @@ Thư mục này lưu trữ chi tiết tiến độ công việc kỹ thuật đ�
 | **03/11/2026** | **Session 22** | Pha 6: demo ViFood-54 (54 lớp, B3b, tìm món theo câu, dinh dưỡng 54 món) | [2026-11-03_phase6_app_vifood54.md](2026-11-03_phase6_app_vifood54.md) |
 | **05/11/2026** | **Session 23** | Pha 5 làm lại: bật giám sát LLM (B5), OV giám sát yếu (OV-W), nền LLMDet (B0-LLMDet, B1-L); sửa lỗi chọn region trước aug; caption VLM + duyệt tay; hướng dẫn chạy | [2026-11-05_phase5_lmm_setup.md](2026-11-05_phase5_lmm_setup.md) |
 | **09/11/2026** | **Session 24** | Chuyển pipeline sang tiếng Anh (tên lớp, caption, thuộc tính VLM), gộp nhánh Pha 5, chạy B1-EN → B3b-EN | [2026-11-09_english_pipeline.md](2026-11-09_english_pipeline.md) |
+| **12/11/2026** | **Session 25** | Phân tích B5-EN lần 1; B5-EN v2 (căn chỉnh + đúng lịch B3b-EN); caption v2 (mô tả từng món + kiểm chứng + bản Việt 1:1); OV tiếng Anh; so ghép cặp; demo mô hình EN + món ngoài 54 lớp + dị ứng; đề xuất gộp lớp; **bàn giao việc server** | [2026-11-12_b5_en_analysis_v2.md](2026-11-12_b5_en_analysis_v2.md) · [HANDOFF_2026-11-12.md](HANDOFF_2026-11-12.md) · [PROPOSAL_merge_classes.md](PROPOSAL_merge_classes.md) |
 
 ---
 

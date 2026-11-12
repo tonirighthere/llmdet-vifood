@@ -40,6 +40,9 @@ def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument('--ann-dir', default=os.path.join(ROOT, 'grounding_data/vifood54/annotations'))
     p.add_argument('--out', default=os.path.join(ROOT, 'grounding_data/vifood54/annotations_ov'))
+    p.add_argument('--en', action='store_true',
+                   help='bộ tiếng Anh: đọc annotations_en/, ghi annotations_ov_en/ (caption VG dựng bằng builder EN)')
+    p.add_argument('--vlm-dir', default=os.path.join(ROOT, 'grounding_data/vifood54/vlm_attrs'))
     p.add_argument('--head-cap', type=int, default=400)
     p.add_argument('--repeat-thr', type=float, default=0.05)
     p.add_argument('--seed', type=int, default=2026)
@@ -67,6 +70,9 @@ def strip_novel(row, novel, names):
 
 def main():
     args = parse_args()
+    if args.en:
+        args.ann_dir = os.path.join(ROOT, 'grounding_data/vifood54/annotations_en')
+        args.out = os.path.join(ROOT, 'grounding_data/vifood54/annotations_ov_en')
     os.makedirs(args.out, exist_ok=True)
     tax = json.load(open(os.path.join(args.ann_dir, 'taxonomy.json'), encoding='utf-8'))
     classes = tax['classes']
@@ -99,12 +105,25 @@ def main():
 
     # ── VG caption (sinh lại, giống build_captions nhưng trên box base) ──
     from transformers import AutoTokenizer
-    from build_captions import build_row
-    from builder import CaptionBuilder
-    from lint import CaptionLinter
     tok = AutoTokenizer.from_pretrained(os.path.join(ROOT, 'huggingface/bert-base-uncased'))
-    linter = CaptionLinter(tok, names, 160)  # lint với đủ 54 tên: caption không được nhắc lớp novel
-    builder = CaptionBuilder({c['name']: c['visual'] for c in classes}, linter.n_tokens, 160)
+    if 'name_vi' in classes[0]:  # taxonomy tiếng Anh (make_en_data.py) -> caption như build_captions_en.py
+        from build_captions_en import AttrSource, build_row as build_row_en
+        from builder_en import CaptionBuilderEN
+        from lint import TASTE_ALLOW_EN, TASTE_WORDS_EN, CaptionLinter
+        linter = CaptionLinter(tok, names, 160, TASTE_WORDS_EN, TASTE_ALLOW_EN)  # lint đủ 54 tên: không nhắc lớp novel
+        tr_path = os.path.join(args.ann_dir, 'translations_vi_en.json')
+        tr = json.load(open(tr_path, encoding='utf-8')).get('phrases', {}) if os.path.exists(tr_path) else {}
+        src = AttrSource(classes, linter, args.vlm_dir, tr)
+        builder = CaptionBuilderEN(src.bank, linter.n_tokens, 160)
+
+        def build_row(r, names, builder, linter, stats, failures):
+            return build_row_en(r, names, builder, linter, src, stats, failures)
+    else:
+        from build_captions import build_row
+        from builder import CaptionBuilder
+        from lint import CaptionLinter
+        linter = CaptionLinter(tok, names, 160)  # lint với đủ 54 tên: caption không được nhắc lớp novel
+        builder = CaptionBuilder({c['name']: c['visual'] for c in classes}, linter.n_tokens, 160)
     stats = collections.defaultdict(list)
     stats.update({'variants': 0, 'failed': 0, 'images_without_variant': 0})
     failures = []

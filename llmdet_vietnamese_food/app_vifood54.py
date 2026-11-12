@@ -47,6 +47,10 @@ def nutrition_html(portions):
         f"<td style='text-align:right'>{p['protein_g']}</td><td style='text-align:right'>{p['carbs_g']}</td>"
         f"<td style='text-align:right'>{p['fat_g']}</td><td style='text-align:right'>{p['score']:.2f}</td></tr>"
         for p in portions)
+    allergy = ''.join(f"<li><b>{a}</b>: {', '.join(names)}</li>" for a, names in s['allergens'].items())
+    allergy = (f"<div style='background:#fef2f2;border-left:4px solid #dc2626;border-radius:6px;padding:8px 12px;"
+               f"margin:10px 0;font-size:0.9rem'><b>⚠️ Có thể chứa chất gây dị ứng</b> (theo thành phần điển hình của món, "
+               f"chỉ để tham khảo):<ul style='margin:4px 0 0 18px'>{allergy}</ul></div>") if allergy else ''
     note = ("<p style='font-size:0.8rem;color:#64748b'>* giá trị ước tính tham khảo. Khẩu phần suy từ diện tích box "
             "theo nhóm món (tô / đĩa / chén chấm / rau), không phải cân thật.</p>")
     return f"""
@@ -61,7 +65,7 @@ def nutrition_html(portions):
         <thead><tr style="background:#f1f5f9;text-align:left"><th>Món</th><th>Khẩu phần</th><th style="text-align:right">kcal</th>
         <th style="text-align:right">Đạm g</th><th style="text-align:right">Carb g</th><th style="text-align:right">Béo g</th><th style="text-align:right">Điểm</th></tr></thead>
         <tbody>{rows}</tbody>
-      </table>{note}
+      </table>{allergy}{note}
     </div>"""
 
 
@@ -84,7 +88,12 @@ def gemini_md(vlm, items, caption, warnings):
         lines.append(f"| {d['name']} | {d.get('position') or '—'} | {d['count']} | {found.get(d['name'], 0)} | "
                      f"{f'{sc:.2f}' if sc else 'không tìm thấy'} |")
     if vlm['other']:
-        lines.append(f"\nNgoài 54 lớp (không khoanh): {', '.join(vlm['other'])}")
+        n_open = {}
+        for i in items:
+            if i.get('open'):
+                n_open[i['name']] = n_open.get(i['name'], 0) + 1
+        lines.append('\nNgoài 54 lớp (khoanh thử theo tên Gemini đặt, chưa có dinh dưỡng): ' + ', '.join(
+            f"{o} ({n_open[o]} box)" if o in n_open else f"{o} (không tìm thấy)" for o in vlm['other']))
     if warnings:
         lines.append('\nCảnh báo caption: ' + '; '.join(warnings))
     return '\n'.join(lines)
@@ -98,9 +107,15 @@ def _ground_caption(image, caption, dishes, thr, model_name):
     return caption, warnings, vlm_mod.keep_counts(items, dishes)
 
 
+def _add_open(image, items, vlm, thr, model_name):
+    """Thêm box cho món ngoài 54 lớp mà Gemini gọi tên (từ vựng mở, thử nghiệm)."""
+    return items + core.detect_open(image, model_name, vlm.get('other_open') or [], items, thr)
+
+
 def _render(image, items, vlm, caption, warnings, info):
-    portions = [dict(NUTRITION.portion(i['name'], i['box'], image.shape), score=i['score']) for i in items]
-    vis = core.draw(image, items, [f"{i['name']} {i['score']:.2f}" for i in items])
+    portions = [dict(NUTRITION.portion(i['name'], i['box'], image.shape), score=i['score'])
+                for i in items if not i.get('open')]  # món ngoài 54 lớp chưa có dữ liệu dinh dưỡng
+    vis = core.draw(image, items, [f"{i['name']}{' (mới)' if i.get('open') else ''} {i['score']:.2f}" for i in items])
     names = sorted({i['name'] for i in items})
     info += f" · {len(items)} box · {len(names)} món: {', '.join(names) or '—'}"
     return vis, nutrition_html(portions), info, gemini_md(vlm, items, caption, warnings), caption, vlm
@@ -120,6 +135,7 @@ def run_detect(image, thr, model_name):
         return _render(image, items, vlm, '', [], f"⏱️ {gem} (lỗi) + detector {(time.time() - t1) * 1000:.0f} ms "
                                                  f"(prompt 54 lớp)")
     caption, warnings, items = _ground_caption(image, vlm['caption'], vlm['dishes'], thr, model_name)
+    items = _add_open(image, items, vlm, thr, model_name)
     return _render(image, items, vlm, caption, warnings,
                    f"⏱️ {gem} + detector {(time.time() - t1) * 1000:.0f} ms (theo caption)")
 
@@ -131,6 +147,7 @@ def run_recaption(image, caption, thr, model_name, vlm):
     vlm = vlm or dict(dishes=[], other=[], description='', model='—', ms=0, cached=True, error=None)
     t1 = time.time()
     caption, warnings, items = _ground_caption(image, caption, [] if vlm['error'] else vlm['dishes'], thr, model_name)
+    items = _add_open(image, items, vlm, thr, model_name)
     vlm = dict(vlm, error=None)
     return _render(image, items, vlm, caption, warnings, f"⏱️ detector {(time.time() - t1) * 1000:.0f} ms (caption đã sửa)")
 
@@ -165,8 +182,10 @@ RESULTS_MD = """
 | :--- | :--- | :---: | :---: | :---: |
 | B0 | checkpoint gốc, không fine-tune | 0.015 | 0.020 | 0.302 |
 | B1-v2 | OD: tên lớp + negative | 0.315 | 0.394 | 0.363 |
-| B3 | OD + caption hình thái, từ đầu | 0.220 | 0.279 | **0.774** |
-| **B3b** | B1-v2 rồi fine-tune OD + caption | **0.323** | **0.405** | 0.663 |
+| B3 | OD + caption hình thái, từ đầu | 0.220 | 0.279 | 0.774 |
+| B3b | B1-v2 rồi fine-tune OD + caption | 0.323 | 0.405 | 0.663 |
+| B1-EN | như B1-v2, tên lớp tiếng Anh | 0.384 | 0.475 | 0.612 |
+| **B3b-EN** | B1-EN rồi fine-tune OD + caption tiếng Anh | **0.387** | **0.484** | **0.830** |
 
 - **Negative trong prompt** là yếu tố quyết định (0.015 → 0.315).
 - **Caption hình thái** (vị trí, số lượng, lượng từ, thuộc tính nhìn thấy) giúp tìm món trong câu tự nhiên gần gấp đôi;
@@ -194,7 +213,7 @@ def dictionary_md():
 
 with gr.Blocks(title='ViFood-54 · Grounding & Dinh dưỡng', theme=gr.themes.Soft()) as demo:
     gr.Markdown('# 🍜 ViFood-54: nhận diện 54 món Việt, tìm món theo câu & ước lượng dinh dưỡng\n'
-                'Grounding DINO Swin-T fine-tune trên ViFood-54 (B3b: OD + caption hình thái).')
+                'Grounding DINO Swin-T fine-tune trên ViFood-54. Mô hình *-EN nhận tên món tiếng Anh; giao diện vẫn là tiếng Việt.')
     with gr.Tabs():
         with gr.TabItem('🍽️ Nhận diện 54 món'):
             with gr.Row():

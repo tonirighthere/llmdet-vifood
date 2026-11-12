@@ -16,6 +16,7 @@ Taxonomy (`scripts/vifood54/taxonomy.json`) là nguồn tên lớp, tên gọi k
 import json
 import os
 import re
+import sys
 
 import numpy as np
 import torch
@@ -25,17 +26,37 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 TAXONOMY_PATH = os.path.join(ROOT, 'scripts/vifood54/taxonomy.json')
 NUTRITION_PATH = os.path.join(HERE, 'nutrition_vifood54.json')
-CONFIG = os.path.join(HERE, 'configs/grounding_dino_swin_t_vifood54_b1_od.py')
+CONFIG = os.path.join(HERE, 'configs/grounding_dino_swin_t_vifood54_b1_od.py')        # prompt tên Việt
+CONFIG_EN = os.path.join(HERE, 'configs/grounding_dino_swin_t_vifood54_b1_od_en.py')  # prompt tên Anh
 FONT_PATH = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
 
-MODELS = {
-    'B3b: OD + caption hình thái (tốt nhất)': os.path.join(
-        HERE, 'work_dirs/vifood54_b3b_ft/best_coco_bbox_mAP_iter_6000.pth'),
-    'B1-v2: OD + negative': os.path.join(
-        HERE, 'work_dirs/vifood54_b1_od_v2/best_coco_bbox_mAP_iter_16000.pth'),
-    'B0: zero-shot (chưa fine-tune)': os.path.join(
-        ROOT, 'huggingface/mm_grounding_dino/grounding_dino_swin-t_pretrain_obj365_goldg_grit9m_v3det_20231204_095047-b448804b.pth'),
+sys.path.insert(0, os.path.join(ROOT, 'scripts/vifood54/captions'))
+from en_names import PROMPT_EN  # noqa: E402  tên lớp Việt -> tên Anh đưa vào BERT (mô hình *-EN)
+
+# Giao diện, taxonomy và dinh dưỡng luôn dùng tên Việt. Mô hình `lang='en'` chỉ khác ở chuỗi đưa vào BERT:
+# detect() / ground() tự đổi tên Việt -> tên Anh (PROMPT_EN) rồi trả kết quả theo tên Việt.
+_W = os.path.join(HERE, 'work_dirs')
+_ALL_MODELS = {
+    'B3b-EN: OD + caption, prompt tiếng Anh (tốt nhất)': dict(
+        ckpt=os.path.join(_W, 'vifood54_b3b_ft_en/best_coco_bbox_mAP_iter_7000.pth'), config=CONFIG_EN, lang='en'),
+    'B1-EN: OD + negative, prompt tiếng Anh': dict(
+        ckpt=os.path.join(_W, 'vifood54_b1_od_en/best_coco_bbox_mAP_iter_16000.pth'), config=CONFIG_EN, lang='en'),
+    'B3b: OD + caption hình thái (tiếng Việt)': dict(
+        ckpt=os.path.join(_W, 'vifood54_b3b_ft/best_coco_bbox_mAP_iter_6000.pth'), config=CONFIG, lang='vi'),
+    'B1-v2: OD + negative (tiếng Việt)': dict(
+        ckpt=os.path.join(_W, 'vifood54_b1_od_v2/best_coco_bbox_mAP_iter_16000.pth'), config=CONFIG, lang='vi'),
+    'B0: zero-shot (chưa fine-tune)': dict(
+        ckpt=os.path.join(ROOT, 'huggingface/mm_grounding_dino/'
+                                'grounding_dino_swin-t_pretrain_obj365_goldg_grit9m_v3det_20231204_095047-b448804b.pth'),
+        config=CONFIG, lang='vi'),
 }
+# chỉ hiện mô hình có checkpoint trên máy này (thứ tự trên = thứ tự ưu tiên làm mặc định)
+MODELS = {k: v for k, v in _ALL_MODELS.items() if os.path.exists(v['ckpt'])} or _ALL_MODELS
+
+
+def is_en(model_name):
+    return MODELS[model_name]['lang'] == 'en'
+
 
 with open(TAXONOMY_PATH, encoding='utf-8') as f:
     TAXONOMY = json.load(f)['classes']
@@ -62,7 +83,7 @@ def load_model(name):
         from mmdet.apis import init_detector
         from mmengine.dataset import Compose
         device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-        model = init_detector(CONFIG, MODELS[name], device=device)
+        model = init_detector(MODELS[name]['config'], MODELS[name]['ckpt'], device=device)
         steps = [dict(t) for t in model.cfg.test_dataloader.dataset.pipeline if t['type'] != 'LoadAnnotations']
         steps[0] = dict(type='LoadImageFromNDArray')
         steps[-1]['meta_keys'] = ('img_id', 'img_path', 'ori_shape', 'img_shape', 'scale_factor',
@@ -100,16 +121,31 @@ def _iou(a, b):
 
 
 def detect(img_rgb, model_name, thr=0.3, classes=None, return_best=False):
-    """Nhận diện với prompt là `classes` (mặc định đủ 54 lớp, giống lúc đánh giá).
+    """Nhận diện với prompt là `classes` (tên Việt; mặc định đủ 54 lớp, giống lúc đánh giá).
     -> list {'name', 'box', 'score'}; return_best thêm dict tên lớp -> điểm box cao nhất."""
     classes = list(classes or CLASS_NAMES)
-    boxes, scores, labels = _run(model_name, img_rgb, tuple(classes))
+    prompt = [PROMPT_EN[c] for c in classes] if is_en(model_name) else classes
+    boxes, scores, labels = _run(model_name, img_rgb, tuple(prompt))
     best = {}
     for s, l in zip(scores, labels):
         best[classes[int(l)]] = max(best.get(classes[int(l)], 0.0), float(s))
     items = _nms([{'name': classes[int(l)], 'box': [float(v) for v in b], 'score': float(s)}
                   for b, s, l in zip(boxes, scores, labels) if s >= thr])
     return (items, best) if return_best else items
+
+
+def detect_open(img_rgb, model_name, extra, known_items, thr=0.3, max_names=5):
+    """Món NGOÀI 54 lớp do VLM gọi tên (thử nghiệm từ vựng mở). extra: list {'name_vi', 'name_en'}.
+    Prompt chỉ gồm các tên mới (mô hình EN dùng name_en) nên không có lớp đã học để cạnh tranh -> bỏ box trùng
+    (IoU > 0.5) với món đã nhận diện. -> list {'name' (tên Việt VLM đặt), 'box', 'score', 'open': True}."""
+    extra = [e for e in extra if e.get('name_vi') and (e.get('name_en') or not is_en(model_name))][:max_names]
+    if not extra:
+        return []
+    prompt = [e['name_en'].lower() if is_en(model_name) else e['name_vi'] for e in extra]
+    boxes, scores, labels = _run(model_name, img_rgb, tuple(prompt))
+    items = _nms([{'name': extra[int(l)]['name_vi'], 'box': [float(v) for v in b], 'score': float(s), 'open': True}
+                  for b, s, l in zip(boxes, scores, labels) if s >= thr])
+    return [it for it in items if all(_iou(it['box'], k['box']) <= 0.5 for k in known_items)]
 
 
 def parse_sentence(sentence):
@@ -126,8 +162,19 @@ def ground(img_rgb, model_name, sentence, thr=0.3):
     ents = parse_sentence(sentence)
     if not ents:
         return [], []
-    text = sentence if sentence.rstrip().endswith('.') else sentence.rstrip() + '.'
-    boxes, scores, labels = _run(model_name, img_rgb, text, [[e['span']] for e in ents])
+    if is_en(model_name):
+        # Mô hình EN không đọc được câu tiếng Việt: prompt = tên Anh của từng cụm tên món trong câu
+        # ("pho noodle soup. dipping sauce."), mỗi cụm một entity. (R@1 chỉ-tên của B3b-EN: 0.859.)
+        text, spans = '', []
+        for e in ents:
+            name = PROMPT_EN[e['name']]
+            spans.append([[len(text), len(text) + len(name)]])
+            text += name + '. '
+        text = text.strip()
+    else:
+        text = sentence if sentence.rstrip().endswith('.') else sentence.rstrip() + '.'
+        spans = [[e['span']] for e in ents]
+    boxes, scores, labels = _run(model_name, img_rgb, text, spans)
     items = []
     for j, e in enumerate(ents):
         idx = np.where(labels == j)[0]
@@ -178,6 +225,7 @@ class Nutrition:
             'kcal': round(e['calories_kcal'] * scale), 'protein_g': round(e['protein_g'] * scale, 1),
             'carbs_g': round(e['carbs_g'] * scale, 1), 'fat_g': round(e['fat_g'] * scale, 1),
             'estimated': e.get('estimated', False),
+            'allergens': e.get('allergens', []),  # bản nháp theo thành phần điển hình, xem _notes của file dinh dưỡng
         }
 
     @staticmethod
@@ -186,6 +234,12 @@ class Nutrition:
         cal = {'protein': tot['protein_g'] * 4, 'carbs': tot['carbs_g'] * 4, 'fat': tot['fat_g'] * 9}
         s = max(sum(cal.values()), 1.0)
         tot['pct'] = {k: round(v / s * 100) for k, v in cal.items()}
+        tot['allergens'] = {}  # chất gây dị ứng -> các món chứa nó
+        for p in portions:
+            for a in p.get('allergens', []):
+                tot['allergens'].setdefault(a, [])
+                if p['name'] not in tot['allergens'][a]:
+                    tot['allergens'][a].append(p['name'])
         return tot
 
 
@@ -202,7 +256,7 @@ def draw(img_rgb, items, labels):
     size = max(14, im.width // 45)
     font = ImageFont.truetype(FONT_PATH, size) if os.path.exists(FONT_PATH) else ImageFont.load_default()
     for it, text in zip(items, labels):
-        color = COLORS[CLASS_NAMES.index(it['name']) % len(COLORS)]
+        color = COLORS[(CLASS_NAMES.index(it['name']) if it['name'] in BY_NAME else len(it['name'])) % len(COLORS)]
         x1, y1, x2, y2 = it['box']
         d.rectangle([x1, y1, x2, y2], outline=color, width=max(2, im.width // 300))
         tb = d.textbbox((x1, y1), text, font=font)

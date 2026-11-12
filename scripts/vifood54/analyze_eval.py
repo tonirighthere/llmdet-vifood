@@ -57,6 +57,7 @@ def parse_args():
     p.add_argument('--iou-thr', type=float, default=0.5)
     p.add_argument('--bootstrap', type=int, default=200)
     p.add_argument('--seed', type=int, default=0)
+    p.add_argument('--baseline', default=None, help='TÊN mô hình làm mốc so ghép cặp (mặc định: --pred đầu tiên)')
     p.add_argument('--taxonomy', default=None,
                    help='taxonomy.json có stats.train.images (mặc định: cùng thư mục với --gt) -> AP theo tần suất lớp')
     p.add_argument('--rare-max', type=int, default=60, help='lớp hiếm: số ảnh train <= ngưỡng này')
@@ -136,7 +137,7 @@ def bootstrap_map(gt, dets, n, seed):
         with contextlib.redirect_stdout(io.StringIO()):
             g.createIndex()
         vals.append(coco_eval(g, ds).stats[0])
-    return np.percentile(vals, [2.5, 97.5])
+    return np.asarray(vals)  # cùng seed -> mọi mô hình dùng CÙNG các mẫu ảnh -> so ghép cặp được
 
 
 def iou(box, boxes):
@@ -190,7 +191,7 @@ def main():
         runs[name] = {
             'stats': ev.stats,
             'per_class': per_class_ap(ev, cat_ids),
-            'ci': bootstrap_map(gt, dets, args.bootstrap, args.seed) if args.bootstrap else None,
+            'boot': bootstrap_map(gt, dets, args.bootstrap, args.seed) if args.bootstrap else None,
             'conf': confusion(gt, dets, args.score_thr, args.iou_thr),
         }
         print(f'{name}: mAP {ev.stats[0]:.3f} AP50 {ev.stats[1]:.3f}')
@@ -201,9 +202,24 @@ def main():
     L += ['## Tổng', '', '| Mô hình | mAP | 95% CI (bootstrap ảnh) | AP50 | AP75 | AP_s | AP_m | AP_l | AR@100 |',
           '|---|---|---|---|---|---|---|---|---|']
     for n in names:
-        s, ci = runs[n]['stats'], runs[n]['ci']
+        s, boot = runs[n]['stats'], runs[n]['boot']
+        ci = np.percentile(boot, [2.5, 97.5]) if boot is not None else None
         ci_s = f'{ci[0]:.3f}–{ci[1]:.3f}' if ci is not None else '-'
         L.append(f'| {n} | {s[0]:.3f} | {ci_s} | {s[1]:.3f} | {s[2]:.3f} | {s[3]:.3f} | {s[4]:.3f} | {s[5]:.3f} | {s[8]:.3f} |')
+
+    base = args.baseline or names[0]
+    if args.bootstrap and base in runs and len(names) > 1:
+        # Bootstrap ghép cặp: hiệu mAP trên cùng mẫu ảnh. Khoảng tin cậy của HIỆU không chứa 0 -> khác biệt có ý nghĩa.
+        L += ['', f'## So ghép cặp với {base} (bootstrap {args.bootstrap} lần, cùng mẫu ảnh)', '',
+              '| Mô hình | ΔmAP (điểm) | 95% CI của Δ | P(Δ > 0) | Kết luận |', '|---|---|---|---|---|']
+        for n in names:
+            if n == base:
+                continue
+            d = runs[n]['boot'] - runs[base]['boot']
+            lo, hi = np.percentile(d, [2.5, 97.5])
+            verdict = 'cao hơn' if lo > 0 else 'thấp hơn' if hi < 0 else 'chưa phân biệt được'
+            L.append(f'| {n} | {runs[n]["stats"][0] - runs[base]["stats"][0]:+.3f} | {lo:+.3f} … {hi:+.3f} | '
+                     f'{(d > 0).mean():.2f} | {verdict} |')
 
     groups = freq_groups(args.taxonomy or os.path.join(os.path.dirname(args.gt), 'taxonomy.json'),
                          cat_ids, args.rare_max, args.freq_min)

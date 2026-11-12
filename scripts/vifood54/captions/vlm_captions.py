@@ -38,7 +38,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
 LANG = os.environ.get('VIFOOD_LANG', 'vi')
 ANN = os.path.join(ROOT, 'grounding_data/vifood54/annotations' + ('_en' if LANG == 'en' else ''))
-ANN_OV = os.path.join(ROOT, 'grounding_data/vifood54/annotations_ov')
+ANN_OV = os.path.join(ROOT, 'grounding_data/vifood54/annotations_ov' + ('_en' if LANG == 'en' else ''))  # make_ov_split(_en).py
 RAW = os.path.join(ANN, 'vlm_captions.jsonl')
 REVIEWED = os.path.join(ANN, 'captions_reviewed.jsonl')
 sys.path.insert(0, HERE)
@@ -127,7 +127,8 @@ class CaptionFilter:
             if self.spec_re.search(s):
                 issues.append(f'bỏ câu suy đoán: {s[:60]}')
                 continue
-            if self.taste_re.search(self.allow_re.sub(' ', s)):
+            # che tên món trước khi dò từ hương vị: tên EN có 'savory', 'crispy' (mini crispy pancakes...)
+            if self.taste_re.search(self.allow_re.sub(' ', self.dish_re.sub(' ', s))):
                 issues.append(f'bỏ câu hương vị: {s[:60]}')
                 continue
             kept.append(s)
@@ -221,17 +222,18 @@ def strip_sentences(text: str, pattern: re.Pattern) -> str:
 
 def cmd_attach(args: argparse.Namespace) -> None:
     accept = set(args.accept.split(','))
-    if args.ov and LANG == 'en':
-        raise SystemExit('chưa có bộ OV tiếng Anh (annotations_ov/ là tiếng Việt)')
+    if args.ov and not os.path.exists(os.path.join(ANN_OV, 'train_od_rfs.jsonl')):
+        raise SystemExit(f'chưa có {ANN_OV} -> chạy scripts/vifood54/make_ov_split' + ('_en' if LANG == 'en' else '') + '.py')
     caps, stat = final_captions(accept)
     print('trạng thái caption VLM:', dict(stat), '→ dùng', len(caps), 'ảnh (accept =', sorted(accept), ')')
     ann_dir = ANN_OV if args.ov else ANN
     novel_re: Optional[re.Pattern] = None
     if args.strip_novel:
         classes = load_taxonomy()
-        novel = [s for c in classes if c['ov_split'] == 'novel' for s in [c['name']] + c.get('aliases', [])]
+        novel = [s for c in classes if c['ov_split'] == 'novel'
+                 for s in [c['name']] + (c.get('aliases', []) if LANG == 'vi' else [])]
         novel_re = _word_re(novel)
-    suffix = '_lmm_nonovel' if args.strip_novel else '_lmm'
+    suffix = args.suffix + ('_nonovel' if args.strip_novel else '')
 
     vg_rows = list(read_jsonl(os.path.join(ann_dir, 'train_vg_cap_rfs.jsonl')))
     template = {r['filename']: r['conversations'][1]['value'] for r in vg_rows}  # caption L2 làm dự phòng
@@ -268,6 +270,7 @@ def main() -> None:
     a = sub.add_parser('attach')
     a.add_argument('--ov', action='store_true', help='ghi vào annotations_ov/ (OV-W)')
     a.add_argument('--strip-novel', action='store_true', help='bỏ câu có tên lớp novel (ablation OV)')
+    a.add_argument('--suffix', default='_lmm', help="hậu tố file ra; '_lmm_v2' để giữ bản caption cũ (B5a) cạnh bản mới (B5b)")
     a.add_argument('--accept', default='approved,edited,auto',
                    help='trạng thái được dùng; còn lại (flagged, rejected) dùng caption template L2')
     args = p.parse_args()
