@@ -68,3 +68,9 @@ grounding_data/vifood54/images/
 grounding_data/vifood54/annotations*/*.jsonl
 grounding_data/vifood54/annotations_v1/
 scripts/**/__pycache__/
+
+# Temporary backups and logs
+*.bak
+*.bak*
+*.bak_template
+log_*.txt
