@@ -10,19 +10,28 @@ Nguyên tắc (ánh xạ paper LLMDet, mục 3 + Table 7):
   - Mỗi chi tiết phải qua lượt kiểm chứng có/không (nên dùng model KHÁC lượt mô tả) trước khi vào caption.
   - Caption train là tiếng Anh; bản tiếng Việt dịch TỪNG CÂU 1:1 chỉ để người duyệt đọc. Duyệt bản Việt = duyệt bản Anh.
 
-Các bước (mỗi bước chạy lại được giữa chừng; 1, 2, 4 cần GPU, 3 chỉ CPU):
-  1) describe   VLM mô tả từng món + bối cảnh           -> captions_v2/describe.jsonl
-  2) verify     VLM (model khác) xác nhận từng chi tiết  -> captions_v2/verify.jsonl
-  3) compose    ghép đoạn văn EN 80–120 từ, lọc, gắn cờ  -> captions_v2/composed.jsonl
-  4) translate  dịch từng câu sang tiếng Việt            -> annotations_en/vlm_captions.jsonl
+Các bước (mỗi bước chạy lại được giữa chừng; 1, 2, 4 cần GPU, 3 chỉ CPU). Mỗi lần chạy nằm trong
+captions_v2/<run>/ (--run), để so nhiều model trên cùng ảnh:
+  1) describe   VLM mô tả từng món + bối cảnh           -> <run>/describe.jsonl
+  2) verify     VLM (model khác) xác nhận từng chi tiết  -> <run>/verify.jsonl
+  3) compose    ghép đoạn văn EN 80–120 từ, lọc, gắn cờ  -> <run>/composed.jsonl
+  4) translate  dịch từng câu sang tiếng Việt            -> <run>/translated.jsonl
+  5) compare    so nhiều run trên cùng ảnh               -> captions_v2/COMPARE.md + compare_scores.csv
+  6) publish    chép run được chọn sang annotations_en/vlm_captions.jsonl
   rồi: VIFOOD_LANG=en review_captions.py  ->  VIFOOD_LANG=en vlm_captions.py attach --suffix _lmm_v2
 
-    M1=llava-hf/llava-onevision-qwen2-7b-ov-hf; M2=huggingface/gemma-4-12B-it
-    python scripts/vifood54/captions/caption_v2.py describe  --model $M1 --limit 50
-    python scripts/vifood54/captions/caption_v2.py verify    --model $M2 --load-4bit
-    python scripts/vifood54/captions/caption_v2.py compose
-    python scripts/vifood54/captions/caption_v2.py translate --model $M2 --load-4bit
-    python scripts/vifood54/captions/caption_v2.py stats     # số từ, tỉ lệ chi tiết bị loại, cờ
+Gọi model (--backend):
+  vllm (mặc định)  máy chủ vLLM chạy riêng (`vllm serve`, API kiểu OpenAI); --workers yêu cầu song song, vLLM tự gom lô.
+                   Xem scripts/vifood54/captions/vast/RUNBOOK.md.
+  hf               transformers trên GPU máy này, tuần tự (dự phòng khi vLLM chưa hỗ trợ model).
+
+    C=scripts/vifood54/captions/caption_v2.py
+    python $C describe  --run q32 --url http://localhost:8000 --limit 50 --workers 32
+    python $C verify    --run q32 --url http://localhost:8001 --workers 32
+    python $C compose   --run q32 && python $C stats --run q32
+    python $C translate --run q32 --url http://localhost:8001 --workers 32
+    python $C compare   --runs q8,q32,q72
+    python $C publish   --run q32
 """
 from __future__ import annotations
 
@@ -33,8 +42,10 @@ import os
 import re
 import statistics
 import sys
+import threading
 import time
-from typing import Any, Iterator, Optional
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Any, Callable, Iterator, Optional
 
 os.environ['VIFOOD_LANG'] = 'en'  # caption v2 chỉ có bản tiếng Anh (annotations_en/)
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -46,7 +57,19 @@ from layout import group_instances  # noqa: E402
 from vlm_captions import ANN, RAW, CaptionFilter, load_taxonomy, read_jsonl  # noqa: E402
 
 OUT_DIR = os.path.join(ROOT, 'grounding_data/vifood54/captions_v2')
-DESCRIBE, VERIFY, COMPOSED = (os.path.join(OUT_DIR, f) for f in ('describe.jsonl', 'verify.jsonl', 'composed.jsonl'))
+# đường dẫn của run hiện tại; set_run() gán lại khi có --run
+DESCRIBE = VERIFY = COMPOSED = TRANSLATED = ''
+
+
+def set_run(run: str) -> None:
+    global DESCRIBE, VERIFY, COMPOSED, TRANSLATED
+    d = os.path.join(OUT_DIR, run)
+    DESCRIBE, VERIFY, COMPOSED, TRANSLATED = (os.path.join(d, f) for f in (
+        'describe.jsonl', 'verify.jsonl', 'composed.jsonl', 'translated.jsonl'))
+
+
+set_run('default')
+MAX_SIDE_CROP, MAX_SIDE_SCENE = 768, 1280  # cạnh dài tối đa (px) ảnh gửi VLM: giới hạn số token ảnh -> lô lớn hơn
 CONTAINERS = sorted({u[0] for u in CONTAINER_EN.values()} | {'banana leaf'})  # plate, bowl, small bowl, basket...
 MAX_PHRASE_WORDS = 8
 
@@ -78,9 +101,12 @@ Keep every placeholder like [[3]] exactly as it is. Return a JSON list of {n} st
 
 # ───────────────────────────── tiện ích ─────────────────────────────
 
+_WRITE_LOCK = threading.Lock()
+
+
 def append_jsonl(path: str, row: dict) -> None:
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, 'a', encoding='utf-8') as f:
+    with _WRITE_LOCK, open(path, 'a', encoding='utf-8') as f:
         f.write(json.dumps(row, ensure_ascii=False) + '\n')
 
 
@@ -98,10 +124,20 @@ def parse_json(text: str) -> Optional[Any]:
         return None
 
 
+def shrink(img, max_side: int):
+    """Thu nhỏ (giữ tỉ lệ) để cạnh dài <= max_side; không phóng to."""
+    if max(img.size) <= max_side:
+        return img
+    img = img.copy()
+    img.thumbnail((max_side, max_side))
+    return img
+
+
 def crop_box(img, box: list[float], margin: float = 0.15):
     x1, y1, x2, y2 = box
     mw, mh = (x2 - x1) * margin, (y2 - y1) * margin
-    return img.crop((max(0, x1 - mw), max(0, y1 - mh), min(img.width, x2 + mw), min(img.height, y2 + mh)))
+    return shrink(img.crop((max(0, x1 - mw), max(0, y1 - mh), min(img.width, x2 + mw), min(img.height, y2 + mh))),
+                  MAX_SIDE_CROP)
 
 
 def largest_boxes(row: dict) -> dict[int, list[float]]:
@@ -142,6 +178,48 @@ class PhraseCleaner:
         return out[:k]
 
 
+class OpenAIVLM:
+    """Gọi máy chủ vLLM (`vllm serve`, API /v1/chat/completions kiểu OpenAI). An toàn khi gọi từ nhiều luồng:
+    mỗi luồng gửi một yêu cầu, vLLM tự gom các yêu cầu đang chờ thành lô trên GPU."""
+
+    def __init__(self, url: str, model: Optional[str] = None, timeout: int = 300, retries: int = 3):
+        import urllib.request
+        self.req = urllib.request
+        self.base = url.rstrip('/')
+        if not self.base.endswith('/v1'):
+            self.base += '/v1'
+        self.timeout, self.retries = timeout, retries
+        if model is None:  # tên model vLLM đang phục vụ
+            with self.req.urlopen(self.base + '/models', timeout=30) as r:
+                model = json.load(r)['data'][0]['id']
+        self.name = model
+
+    @staticmethod
+    def _data_url(img) -> str:
+        import base64
+        import io
+        buf = io.BytesIO()
+        img.save(buf, format='JPEG', quality=90)
+        return 'data:image/jpeg;base64,' + base64.b64encode(buf.getvalue()).decode()
+
+    def ask(self, images: list, text: str, max_new_tokens: int = 200) -> str:
+        content = [{'type': 'image_url', 'image_url': {'url': self._data_url(im)}} for im in images]
+        content.append({'type': 'text', 'text': text})
+        body = json.dumps({'model': self.name, 'messages': [{'role': 'user', 'content': content}],
+                           'temperature': 0.0, 'max_tokens': max_new_tokens}).encode()
+        last: Optional[Exception] = None
+        for attempt in range(self.retries):
+            try:
+                rq = self.req.Request(self.base + '/chat/completions', data=body,
+                                      headers={'Content-Type': 'application/json'})
+                with self.req.urlopen(rq, timeout=self.timeout) as r:
+                    return (json.load(r)['choices'][0]['message']['content'] or '').strip()
+            except Exception as e:  # mạng / máy chủ quá tải: thử lại có giãn cách
+                last = e
+                time.sleep(2 * (attempt + 1))
+        raise RuntimeError(f'vLLM {self.base}: {last}')
+
+
 class VLM:
     """Model ảnh-văn bản của HF (LLaVA-OneVision-hf, Gemma...) qua chat template; ask() trả chuỗi sinh ra."""
 
@@ -169,6 +247,34 @@ class VLM:
         return self.proc.decode(gen[0, inputs['input_ids'].shape[1]:], skip_special_tokens=True).strip()
 
 
+def make_vlm(args: argparse.Namespace):
+    if args.backend == 'vllm':
+        return OpenAIVLM(args.url, args.served_model)
+    if args.workers != 1:
+        print('backend hf: chạy tuần tự (--workers bị bỏ qua)')
+        args.workers = 1
+    return VLM(args.model, args.load_4bit)
+
+
+def run_parallel(items: list, work: Callable[[Any], dict], out_path: str, workers: int, label: str) -> None:
+    """Chạy work(item) song song, ghi từng kết quả ngay khi xong (dừng giữa chừng không mất việc).
+    Lỗi ở một ảnh chỉ in ra, ảnh đó chạy lại ở lần sau (vì chưa có trong file)."""
+    t0, n_ok, n_err = time.time(), 0, 0
+    with ThreadPoolExecutor(max_workers=max(1, workers)) as ex:
+        futs = {ex.submit(work, it): it for it in items}
+        for k, f in enumerate(as_completed(futs), 1):
+            try:
+                append_jsonl(out_path, f.result())
+                n_ok += 1
+            except Exception as e:  # không dừng cả đợt vì một ảnh
+                n_err += 1
+                print(f'!! {label}: {futs[f].get("filename", "?")}: {type(e).__name__}: {str(e)[:160]}', flush=True)
+            if k % 50 == 0 or k == len(items):
+                el = time.time() - t0
+                print(f'{label} {k}/{len(items)} · {el / k:.2f}s/ảnh (thực tế, đã song song) · '
+                      f'còn ~{el / k * (len(items) - k) / 60:.0f} phút · lỗi {n_err}', flush=True)
+
+
 def load_rows(args: argparse.Namespace, done: set[str]) -> list[dict]:
     rows = [r for r in read_jsonl(args.ann) if r['detection']['instances'] and r['filename'] not in done]
     return rows[:args.limit] if args.limit else rows
@@ -176,48 +282,54 @@ def load_rows(args: argparse.Namespace, done: set[str]) -> list[dict]:
 
 def open_image(filename: str):
     from PIL import Image, ImageOps
-    return ImageOps.exif_transpose(Image.open(os.path.join(ROOT, filename))).convert('RGB')
+    path = os.path.join(ROOT, filename)
+    if not os.path.exists(path):
+        raise FileNotFoundError(f'không thấy ảnh {path} (giải nén gói ảnh vào gốc repo, giữ nguyên đường dẫn)')
+    return ImageOps.exif_transpose(Image.open(path)).convert('RGB')
 
 
 # ───────────────────────────── 1) describe ─────────────────────────────
+
+def describe_row(vlm, row: dict, classes: list[dict], cleaner: PhraseCleaner) -> dict:
+    img = open_image(row['filename'])
+    dishes: dict[str, dict] = {}
+    for label, box in largest_boxes(row).items():
+        c = classes[label]
+        if not c['visual']['attrs']:  # lớp gom (other dish, dessert): không có hình thái chung -> không hỏi
+            continue
+        ans = parse_json(vlm.ask([crop_box(img, box)], DISH_PROMPT.format(
+            name=c['name'], definition=c['visual']['definition'], containers=', '.join(CONTAINERS)),
+            max_new_tokens=220))
+        if not isinstance(ans, dict):
+            dishes[str(label)] = {'error': 'json'}
+            continue
+        cont = str(ans.get('container', '')).strip().lower()
+        dishes[str(label)] = {
+            'container': cont if cont in CONTAINERS else '',
+            'colors': cleaner.clean_list(ans.get('colors'), 3),
+            'components': cleaner.clean_list(ans.get('components'), 5),
+            'arrangement': cleaner.clean(ans.get('arrangement')) or '',
+            'box': box,
+        }
+    sc = parse_json(vlm.ask([shrink(img, MAX_SIDE_SCENE)], SCENE_PROMPT, max_new_tokens=160))
+    scene = {'error': 'json'} if not isinstance(sc, dict) else {
+        'surface': cleaner.clean(sc.get('surface')) or '',
+        'utensils': cleaner.clean_list(sc.get('utensils'), 3),
+        'other_objects': cleaner.clean_list(sc.get('other_objects'), 4),
+        'background': cleaner.clean(sc.get('background')) or '',
+    }
+    return {'filename': row['filename'], 'model': vlm.name, 'dishes': dishes, 'scene': scene}
+
 
 def cmd_describe(args: argparse.Namespace) -> None:
     classes = load_taxonomy()
     cleaner = PhraseCleaner(classes)
     rows = load_rows(args, done_files(DESCRIBE))
-    print(f'describe: còn {len(rows)} ảnh')
-    vlm = VLM(args.model, args.load_4bit)
-    t0 = time.time()
-    for k, row in enumerate(rows, 1):
-        img = open_image(row['filename'])
-        dishes: dict[str, dict] = {}
-        for label, box in largest_boxes(row).items():
-            c = classes[label]
-            if not c['visual']['attrs']:  # lớp gom (other dish, dessert): không có hình thái chung -> không hỏi
-                continue
-            ans = parse_json(vlm.ask([crop_box(img, box)], DISH_PROMPT.format(
-                name=c['name'], definition=c['visual']['definition'], containers=', '.join(CONTAINERS))))
-            if not isinstance(ans, dict):
-                dishes[str(label)] = {'error': 'json'}
-                continue
-            cont = str(ans.get('container', '')).strip().lower()
-            dishes[str(label)] = {
-                'container': cont if cont in CONTAINERS else '',
-                'colors': cleaner.clean_list(ans.get('colors'), 3),
-                'components': cleaner.clean_list(ans.get('components'), 5),
-                'arrangement': cleaner.clean(ans.get('arrangement')) or '',
-                'box': box,
-            }
-        sc = parse_json(vlm.ask([img], SCENE_PROMPT))
-        scene = {'error': 'json'} if not isinstance(sc, dict) else {
-            'surface': cleaner.clean(sc.get('surface')) or '',
-            'utensils': cleaner.clean_list(sc.get('utensils'), 3),
-            'other_objects': cleaner.clean_list(sc.get('other_objects'), 4),
-            'background': cleaner.clean(sc.get('background')) or '',
-        }
-        append_jsonl(DESCRIBE, {'filename': row['filename'], 'model': vlm.name, 'dishes': dishes, 'scene': scene})
-        if k % 20 == 0:
-            print(f'{k}/{len(rows)} · {(time.time() - t0) / k:.1f}s/ảnh', flush=True)
+    print(f'describe [{os.path.relpath(DESCRIBE, ROOT)}]: còn {len(rows)} ảnh')
+    if not rows:
+        return
+    vlm = make_vlm(args)
+    run_parallel(rows, lambda r: describe_row(vlm, r, classes, cleaner), DESCRIBE, args.workers, 'describe')
 
 
 # ───────────────────────────── 2) verify ─────────────────────────────
@@ -233,7 +345,7 @@ def phrases_of(d: dict, keys: tuple[str, ...]) -> list[str]:
 DISH_KEYS, SCENE_KEYS = ('colors', 'components', 'arrangement'), ('surface', 'utensils', 'other_objects', 'background')
 
 
-def ask_yes_no(vlm: VLM, image, phrases: list[str]) -> dict[str, bool]:
+def ask_yes_no(vlm: Any, image, phrases: list[str]) -> dict[str, bool]:
     if not phrases:
         return {}
     items = '\n'.join(f'{i}. {p}' for i, p in enumerate(phrases, 1))
@@ -243,24 +355,30 @@ def ask_yes_no(vlm: VLM, image, phrases: list[str]) -> dict[str, bool]:
     return {p: str(ans.get(str(i), 'no')).strip().lower().startswith('y') for i, p in enumerate(phrases, 1)}
 
 
+def verify_row(vlm, row: dict) -> dict:
+    img = open_image(row['filename'])
+    ok: dict[str, dict[str, bool]] = {}
+    for label, d in row['dishes'].items():
+        if 'error' not in d:
+            ok[label] = ask_yes_no(vlm, crop_box(img, d['box']), phrases_of(d, DISH_KEYS))
+    scene_ok = {} if 'error' in row['scene'] else ask_yes_no(vlm, shrink(img, MAX_SIDE_SCENE),
+                                                              phrases_of(row['scene'], SCENE_KEYS))
+    return {'filename': row['filename'], 'model': vlm.name, 'dishes': ok, 'scene': scene_ok}
+
+
 def cmd_verify(args: argparse.Namespace) -> None:
     done = done_files(VERIFY)
     rows = [r for r in read_jsonl(DESCRIBE) if r['filename'] not in done]
     if args.limit:
         rows = rows[:args.limit]
-    print(f'verify: còn {len(rows)} ảnh')
-    vlm = VLM(args.model, args.load_4bit)
-    t0 = time.time()
-    for k, row in enumerate(rows, 1):
-        img = open_image(row['filename'])
-        ok: dict[str, dict[str, bool]] = {}
-        for label, d in row['dishes'].items():
-            if 'error' not in d:
-                ok[label] = ask_yes_no(vlm, crop_box(img, d['box']), phrases_of(d, DISH_KEYS))
-        scene_ok = {} if 'error' in row['scene'] else ask_yes_no(vlm, img, phrases_of(row['scene'], SCENE_KEYS))
-        append_jsonl(VERIFY, {'filename': row['filename'], 'model': vlm.name, 'dishes': ok, 'scene': scene_ok})
-        if k % 20 == 0:
-            print(f'{k}/{len(rows)} · {(time.time() - t0) / k:.1f}s/ảnh', flush=True)
+    print(f'verify [{os.path.relpath(VERIFY, ROOT)}]: còn {len(rows)} ảnh')
+    if not rows:
+        return
+    vlm = make_vlm(args)
+    desc_model = rows[0].get('model', '')
+    if desc_model and desc_model == vlm.name:
+        print(f'!! CẢNH BÁO: model kiểm chứng trùng model mô tả ({desc_model}) -> kiểm chứng chéo mất tác dụng')
+    run_parallel(rows, lambda r: verify_row(vlm, r), VERIFY, args.workers, 'verify')
 
 
 # ───────────────────────────── 3) compose ─────────────────────────────
@@ -419,7 +537,7 @@ def restore(sentences: list[str], table: list[str]) -> Optional[list[str]]:
     return out
 
 
-def translate_row(vlm: VLM, sentences: list[str], name_vi: dict[str, str], filt: CaptionFilter) -> Optional[list[str]]:
+def translate_row(vlm: Any, sentences: list[str], name_vi: dict[str, str], filt: CaptionFilter) -> Optional[list[str]]:
     masked, table = protect(sentences, name_vi, filt)
     items = '\n'.join(f'{i}. {s}' for i, s in enumerate(masked, 1))
     ans = parse_json(vlm.ask([], TRANSLATE_PROMPT.format(n=len(masked), items=items), max_new_tokens=60 * len(masked)))
@@ -431,28 +549,95 @@ def translate_row(vlm: VLM, sentences: list[str], name_vi: dict[str, str], filt:
     return restore(ans, table)
 
 
+def translate_one(vlm, r: dict, name_vi: dict[str, str], filt: CaptionFilter) -> dict:
+    vi = None if vlm is None else translate_row(vlm, r['sentences'], name_vi, filt)
+    if vi is None and vlm is not None:  # thử lại từng câu
+        parts = [translate_row(vlm, [s], name_vi, filt) for s in r['sentences']]
+        vi = [p[0] for p in parts] if all(parts) else None
+    if vi is None:
+        return dict(r, status='flagged', issues=r['issues'] + ['FLAG chưa có bản dịch tiếng Việt'])
+    return dict(r, sentences_vi=vi, caption_vi=' '.join(vi))
+
+
 def cmd_translate(args: argparse.Namespace) -> None:
     classes = load_taxonomy()
     filt = CaptionFilter(classes)
     name_vi = {c['name']: c['name_vi'] for c in classes}
-    done = done_files(RAW)
+    done = done_files(TRANSLATED)
     rows = [r for r in read_jsonl(COMPOSED) if r['filename'] not in done]
     if args.limit:
         rows = rows[:args.limit]
-    print(f'translate: còn {len(rows)} ảnh -> {os.path.relpath(RAW, ROOT)}')
-    vlm = None if args.skip else VLM(args.model, args.load_4bit)
-    for k, r in enumerate(rows, 1):
-        vi = None if vlm is None else translate_row(vlm, r['sentences'], name_vi, filt)
-        if vi is None and vlm is not None:  # thử lại từng câu
-            parts = [translate_row(vlm, [s], name_vi, filt) for s in r['sentences']]
-            vi = [p[0] for p in parts] if all(parts) else None
-        if vi is None:
-            r = dict(r, status='flagged', issues=r['issues'] + ['FLAG chưa có bản dịch tiếng Việt'])
-        else:
-            r = dict(r, sentences_vi=vi, caption_vi=' '.join(vi))
-        append_jsonl(RAW, r)
-        if k % 50 == 0:
-            print(f'{k}/{len(rows)}', flush=True)
+    print(f'translate [{os.path.relpath(TRANSLATED, ROOT)}]: còn {len(rows)} ảnh')
+    if not rows:
+        return
+    vlm = None if args.skip else make_vlm(args)
+    run_parallel(rows, lambda r: translate_one(vlm, r, name_vi, filt), TRANSLATED, args.workers, 'translate')
+
+
+# ───────────────────────────── 5) compare / 6) publish ─────────────────────────────
+
+def cmd_compare(args: argparse.Namespace) -> None:
+    """Đặt caption của nhiều run cạnh nhau trên CÙNG ảnh cho người chấm; kèm số liệu tự động mỗi run."""
+    runs = [r.strip() for r in args.runs.split(',') if r.strip()]
+    data: dict[str, dict[str, dict]] = {}
+    for run in runs:
+        set_run(run)
+        path = TRANSLATED if os.path.exists(TRANSLATED) else COMPOSED
+        if not os.path.exists(path):
+            raise SystemExit(f'run {run}: chưa có {os.path.relpath(path, ROOT)}')
+        data[run] = {r['filename']: r for r in read_jsonl(path)}
+    common = sorted(set.intersection(*(set(d) for d in data.values())))
+    if args.limit:
+        common = common[:args.limit]
+    if not common:
+        raise SystemExit('các run không có ảnh chung')
+    L = [f'# So sánh caption v2 giữa các model ({len(common)} ảnh chung)', '',
+         '| Run | Model mô tả + kiểm chứng | Số từ TB | Chi tiết nêu / qua kiểm chứng | Tỉ lệ bị loại | Chi tiết qua kiểm chứng / ảnh | Ảnh bị gắn cờ |',
+         '|---|---|---|---|---|---|---|']
+    for run in runs:
+        rows = [data[run][f] for f in common]
+        claim, kept = sum(r['n_claim'] for r in rows), sum(r['n_kept'] for r in rows)
+        L.append(f'| {run} | {rows[0].get("model", "")} | {statistics.mean(r["n_words"] for r in rows):.0f} | '
+                 f'{claim} / {kept} | {1 - kept / max(claim, 1):.0%} | {kept / len(rows):.1f} | '
+                 f'{sum(r["status"] == "flagged" for r in rows)} |')
+    L += ['', 'Người chấm: đọc bản tiếng Việt (bản Anh để đối chiếu), điền `compare_scores.csv`: số câu SAI so với ảnh, '
+          'số chi tiết CHUNG CHUNG (vd "green leaves" thay vì gọi đúng loại rau), điểm tổng 1–5. '
+          'Thứ tự các run trong từng ảnh được giữ cố định; nên chấm mà không nhìn tên run.', '']
+    for f in common:
+        L += [f'## `{os.path.basename(f)}`', '', f'Món (nhãn): {", ".join(data[runs[0]][f]["gt"])}', '']
+        for i, run in enumerate(runs):
+            r = data[run][f]
+            L += [f'**[{chr(65 + i)}]** ({r["n_words"]} từ, {r["n_kept"]}/{r["n_claim"]} chi tiết)', '',
+                  '> ' + (r.get('caption_vi') or '(chưa dịch)'), '', f'<sub>EN: {r["caption"]}</sub>', '']
+    out_md = os.path.join(OUT_DIR, 'COMPARE.md')
+    os.makedirs(OUT_DIR, exist_ok=True)
+    with open(out_md, 'w', encoding='utf-8') as fo:
+        fo.write('\n'.join(L) + '\n')
+    out_csv = os.path.join(OUT_DIR, 'compare_scores.csv')
+    if not os.path.exists(out_csv):  # không ghi đè điểm đã chấm
+        with open(out_csv, 'w', encoding='utf-8') as fo:
+            fo.write('filename,run_letter,run,n_wrong_sentences,n_generic_details,overall_1to5,note\n')
+            for f in common:
+                for i, run in enumerate(runs):
+                    fo.write(f'{os.path.basename(f)},{chr(65 + i)},{run},,,,\n')
+    print(f'-> {os.path.relpath(out_md, ROOT)}, {os.path.relpath(out_csv, ROOT)}')
+    print('\n'.join(L[:3 + len(runs)]))
+
+
+def cmd_publish(args: argparse.Namespace) -> None:
+    """Chép bản dịch của run được chọn sang annotations_en/vlm_captions.jsonl (đầu vào review_captions / attach)."""
+    if not os.path.exists(TRANSLATED):
+        raise SystemExit(f'chưa có {os.path.relpath(TRANSLATED, ROOT)} -> chạy translate trước')
+    rows = list(read_jsonl(TRANSLATED))
+    if os.path.exists(RAW) and not args.force:
+        raise SystemExit(f'{os.path.relpath(RAW, ROOT)} đã có; thêm --force để ghi đè (bản cũ đổi tên .bak)')
+    if os.path.exists(RAW):
+        os.replace(RAW, RAW + '.bak')
+    with open(RAW, 'w', encoding='utf-8') as fo:
+        for r in rows:
+            fo.write(json.dumps(r, ensure_ascii=False) + '\n')
+    print(f'{len(rows)} caption -> {os.path.relpath(RAW, ROOT)}')
+    print_stats(rows)
 
 
 def main() -> None:
@@ -460,22 +645,38 @@ def main() -> None:
     sub = p.add_subparsers(dest='cmd', required=True)
     for name in ('describe', 'verify', 'translate'):
         s = sub.add_parser(name)
-        s.add_argument('--model', default='llava-hf/llava-onevision-qwen2-7b-ov-hf')
-        s.add_argument('--load-4bit', action='store_true')
+        s.add_argument('--run', default='default', help='tên lần chạy: captions_v2/<run>/')
+        s.add_argument('--backend', choices=['vllm', 'hf'], default='vllm')
+        s.add_argument('--url', default='http://localhost:8000', help='máy chủ vLLM (backend vllm)')
+        s.add_argument('--served-model', default=None, help='tên model trên máy chủ vLLM (mặc định: hỏi /v1/models)')
+        s.add_argument('--workers', type=int, default=32, help='số yêu cầu gửi song song (backend vllm)')
+        s.add_argument('--model', default='llava-hf/llava-onevision-qwen2-7b-ov-hf', help='backend hf: model HF')
+        s.add_argument('--load-4bit', action='store_true', help='backend hf')
         s.add_argument('--limit', type=int, default=0, help='chỉ chạy N ảnh (thử)')
         s.add_argument('--ann', default=os.path.join(ANN, 'train_od.jsonl'), help='mỗi ảnh một dòng, đủ 54 lớp GT')
     sub.choices['translate'].add_argument('--skip', action='store_true',
-                                          help='không dịch (không cần GPU): chép sang vlm_captions.jsonl, gắn cờ mọi ảnh')
+                                          help='không dịch (không cần GPU): gắn cờ mọi ảnh')
     c = sub.add_parser('compose')
+    c.add_argument('--run', default='default')
     c.add_argument('--ann', default=os.path.join(ANN, 'train_od.jsonl'))
     c.add_argument('--max-words', type=int, default=140)
     c.add_argument('--allow-unverified', action='store_true', help='ghép cả ảnh chưa qua bước verify (chỉ để thử)')
-    sub.add_parser('stats')
+    st = sub.add_parser('stats')
+    st.add_argument('--run', default='default')
+    cp = sub.add_parser('compare')
+    cp.add_argument('--runs', required=True, help='vd q8,q32,q72')
+    cp.add_argument('--limit', type=int, default=0)
+    pb = sub.add_parser('publish')
+    pb.add_argument('--run', required=True)
+    pb.add_argument('--force', action='store_true')
     args = p.parse_args()
+    if getattr(args, 'run', None):
+        set_run(args.run)
     if args.cmd == 'stats':
         print_stats(list(read_jsonl(COMPOSED)) if os.path.exists(COMPOSED) else [])
         return
-    {'describe': cmd_describe, 'verify': cmd_verify, 'compose': cmd_compose, 'translate': cmd_translate}[args.cmd](args)
+    {'describe': cmd_describe, 'verify': cmd_verify, 'compose': cmd_compose, 'translate': cmd_translate,
+     'compare': cmd_compare, 'publish': cmd_publish}[args.cmd](args)
 
 
 if __name__ == '__main__':
