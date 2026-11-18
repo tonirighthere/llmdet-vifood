@@ -398,6 +398,28 @@ def relation(a, b) -> Optional[str]:
     return 'above' if dy < 0 else 'below'
 
 
+SCENE_WORDS = {'tablecloth', 'table', 'surface', 'spoon', 'spoons', 'chopstick', 'chopsticks', 'fork', 'knife',
+               'napkin', 'rim', 'plate', 'plates', 'bowl', 'tray', 'basket', 'placemat', 'mat', 'saucer',
+               'glass', 'glasses', 'mug', 'mugs', 'cup', 'cups', 'bottle', 'teapot', 'beer'}
+STOP_WORDS = {'a', 'an', 'the', 'and', 'of', 'with', 'on', 'in'}
+
+
+def clean_details(phrases: list[str]) -> list[str]:
+    """Chi tiết của MÓN: bỏ cụm tả bàn / bát đĩa / dụng cụ (thuộc bối cảnh) và cụm trùng (cùng tập từ hoặc tập con)."""
+    out: list[str] = []
+    seen: list[set[str]] = []
+    for p in phrases:
+        words = set(re.findall(r"[a-z]+", p.lower()))
+        if words & SCENE_WORDS:
+            continue
+        key = words - STOP_WORDS
+        if not key or any(key <= k or k <= key for k in seen):
+            continue
+        seen.append(key)
+        out.append(p)
+    return out
+
+
 def compose_row(row: dict, desc: dict, ver: Optional[dict], classes: list[dict], filt: CaptionFilter,
                 max_words: int) -> dict:
     names = [c['name'] for c in classes]
@@ -420,7 +442,7 @@ def compose_row(row: dict, desc: dict, ver: Optional[dict], classes: list[dict],
         return kept
 
     per_dish = 5 if len(groups) <= 3 else 3  # ảnh nhiều món: bớt chi tiết mỗi món để không quá dài
-    sentences: list[str] = []
+    blocks: list[tuple[str, list[str], list[str], str, str]] = []  # (câu giới thiệu, chi tiết, cách bày, đại từ, động từ)
     for g in groups:
         c = classes[g.label]
         d = desc['dishes'].get(str(g.label), {})
@@ -437,31 +459,50 @@ def compose_row(row: dict, desc: dict, ver: Optional[dict], classes: list[dict],
         np_ = f'{_article(head)} {head} of {g.name}' if g.n == 1 else f'{COUNT_WORDS.get(g.n, "several")} {plur} of {g.name}'
         loc, _ = location_en(g)
         verb = 'is' if g.n == 1 else 'are'
-        sentences.append(f'{_cap(loc)} there {verb} {np_}.')
-        details = confirmed(str(g.label), d.get('colors', []) + d.get('components', []))[:per_dish]
+        details = clean_details(confirmed(str(g.label), d.get('colors', []) + d.get('components', [])))
         arr = confirmed(str(g.label), [d['arrangement']] if d.get('arrangement') else [])
-        pron = 'It' if g.n == 1 else 'They'
-        if details:
-            sentences.append(f'{pron} {"shows" if g.n == 1 else "show"} {join_and(details)}.')
-        if arr:
-            sentences.append(f'{pron} {verb} {arr[0]}.')
+        blocks.append((f'{_cap(loc)} there {verb} {np_}.', details, arr, 'It' if g.n == 1 else 'They', verb))
+    scene: list[str] = []
     for a, b in zip(groups, groups[1:3]):  # tối đa 2 quan hệ giữa các món lớn nhất
         rel = relation(a, b)
         if rel:
-            sentences.append(f'The {a.name} {"is" if a.n == 1 else "are"} {rel} the {b.name}.')
+            scene.append(f'The {a.name} {"is" if a.n == 1 else "are"} {rel} the {b.name}.')
     sc = desc['scene'] if 'error' not in desc['scene'] else {}
     surface = confirmed(None, [sc['surface']] if sc.get('surface') else [])
     if surface:
-        sentences.append(f'The dishes are set on {_article(surface[0])} {surface[0]}.')
+        scene.append(f'The dishes are set on {_article(surface[0])} {surface[0]}.')
     objs = confirmed(None, sc.get('utensils', []) + sc.get('other_objects', []))
     if objs:
-        sentences.append(f'Also visible: {join_and(objs)}.')
+        scene.append(f'Also visible: {join_and(objs)}.')
     bg = confirmed(None, [sc['background']] if sc.get('background') else [])
     if bg:
-        sentences.append(f'The background shows {_article(bg[0])} {bg[0]}.')
+        scene.append(f'The background shows {_article(bg[0])} {bg[0]}.')
 
-    while len(' '.join(sentences).split()) > max_words and len(sentences) > len(groups):
-        sentences.pop()  # bỏ từ cuối (bối cảnh trước), không bao giờ bỏ câu giới thiệu món
+    def render(per: int, with_arr: bool) -> list[str]:
+        out: list[str] = []
+        for intro, details, arr, pron, verb in blocks:
+            out.append(intro)
+            if details[:per]:
+                out.append(f'{pron} {"shows" if pron == "It" else "show"} {join_and(details[:per])}.')
+            if arr and with_arr:
+                out.append(f'{pron} {verb} {arr[0]}.')
+        return out
+
+    def n_words_of(xs: list[str]) -> int:
+        return len(' '.join(xs).split())
+
+    # Quá dài: bỏ câu bối cảnh (từ cuối) trước, rồi bớt cách bày, rồi bớt dần chi tiết mỗi món.
+    # KHÔNG BAO GIỜ bỏ câu giới thiệu món -> mọi món có nhãn đều có tên trong caption.
+    sentences = render(per_dish, True)
+    extra = list(scene)
+    while extra and n_words_of(sentences + extra) > max_words:
+        extra.pop()
+    if n_words_of(sentences + extra) > max_words:
+        for per, with_arr in [(per_dish, False)] + [(k, False) for k in range(per_dish - 1, -1, -1)]:
+            sentences = render(per, with_arr)
+            if n_words_of(sentences) <= max_words:
+                break
+    sentences = sentences + extra
     caption = ' '.join(sentences)
     gt = {g.name for g in groups}
     if filt.dishes_in(caption) != gt:

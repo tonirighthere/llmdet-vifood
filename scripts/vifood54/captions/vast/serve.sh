@@ -5,6 +5,7 @@
 #   drop_model <model>          -> xóa model khỏi cache HF để giải phóng ổ (ổ máy thuê có hạn)
 WS=${WS:-/workspace}
 export HF_HOME=${HF_HOME:-$WS/hf}
+export HF_HUB_DISABLE_XET=${HF_HUB_DISABLE_XET:-1}  # tránh cache xet trùng lặp làm đầy ổ
 LOGDIR=${LOGDIR:-$WS/logs}
 mkdir -p "$LOGDIR"
 
@@ -34,6 +35,21 @@ stop_vllm() {
 }
 
 drop_model() {
+  # HF hub bản mới lưu dữ liệu chung ở hub/blobs, thư mục models--* chỉ chứa symlink -> xóa thư mục rồi dọn blob mồ côi
   rm -rf "$HF_HOME/hub/models--$(echo "$1" | sed 's|/|--|g')"
+  python3 - <<'PY'
+import os
+hub = os.path.join(os.environ['HF_HOME'], 'hub')
+used = {os.path.realpath(os.path.join(d, f)) for m in os.listdir(hub) if m.startswith('models--')
+        for d, _, fs in os.walk(os.path.join(hub, m)) for f in fs if os.path.islink(os.path.join(d, f))}
+freed = 0
+for d, _, fs in os.walk(os.path.join(hub, 'blobs')):
+    for f in fs:
+        p = os.path.join(d, f)
+        if os.path.realpath(p) not in used:
+            freed += os.path.getsize(p)
+            os.remove(p)
+print(f'dọn blob không dùng: {freed / 1e9:.1f} GB')
+PY
   df -h "$WS" | tail -1
 }

@@ -15,7 +15,7 @@ PACK=${PACK:-$(ls "$WS"/caption_pack.tar "$WS"/*.zip 2>/dev/null | head -1 || tr
 if [ -z "$PACK" ] && [ -n "${PACK_URL:-}" ]; then
   python3 -m pip install -q gdown
   PACK="$WS/caption_pack.zip"
-  python3 -m gdown --fuzzy "$PACK_URL" -O "$PACK"
+  python3 -m gdown "$(echo "$PACK_URL" | sed -E 's#.*/d/([^/?]+).*#\1#; s#.*[?&]id=([^&]+).*#\1#')" -O "$PACK"
 fi
 [ -n "$PACK" ] && [ -f "$PACK" ] || { echo "chưa có gói dữ liệu trong $WS (scp lên, hoặc export PACK_URL=...; xem RUNBOOK.md)"; exit 1; }
 python3 scripts/vifood54/captions/vast/place_pack.py "$PACK"
