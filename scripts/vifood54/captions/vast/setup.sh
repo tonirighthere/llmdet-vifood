@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Chạy MỘT LẦN trên máy thuê (Vast.ai), trong terminal của instance, sau khi đã chép caption_pack.tar lên /workspace.
+# Chạy MỘT LẦN trên máy thuê (Vast.ai), trong terminal của instance, sau khi đã chép gói dữ liệu (zip/tar) lên /workspace hoặc đặt PACK_URL.
 #   export HF_TOKEN=hf_...      # bắt buộc nếu model kiểm chứng là Gemma (repo có cổng chấp nhận điều khoản)
 #   bash setup.sh               # (tải riêng file này, hoặc chạy từ repo đã clone)
 set -euo pipefail
@@ -8,8 +8,17 @@ BRANCH=${BRANCH:-truong/b5-en-v2}
 cd "$WS"
 [ -d llmdet-vifood ] || git clone --depth 1 -b "$BRANCH" https://github.com/tonirighthere/llmdet-vifood.git
 cd llmdet-vifood
-[ -f "$WS/caption_pack.tar" ] || { echo "chưa có $WS/caption_pack.tar (chép từ server nhóm: xem RUNBOOK.md)"; exit 1; }
-[ -f grounding_data/vifood54/annotations_en/train_od.jsonl ] || tar -xf "$WS/caption_pack.tar"
+# Gói dữ liệu: zip hoặc tar, cấu trúc thư mục bất kỳ (place_pack.py tự tìm annotation + ảnh và đặt đúng chỗ).
+#   - đã chép lên /workspace bằng scp: đặt tên bất kỳ, hoặc PACK=/workspace/<tên file>
+#   - hoặc tải thẳng từ Google Drive: export PACK_URL="<link file, chia sẻ bất kỳ ai có link>"
+PACK=${PACK:-$(ls "$WS"/caption_pack.tar "$WS"/*.zip 2>/dev/null | head -1 || true)}
+if [ -z "$PACK" ] && [ -n "${PACK_URL:-}" ]; then
+  python3 -m pip install -q gdown
+  PACK="$WS/caption_pack.zip"
+  python3 -m gdown --fuzzy "$PACK_URL" -O "$PACK"
+fi
+[ -n "$PACK" ] && [ -f "$PACK" ] || { echo "chưa có gói dữ liệu trong $WS (scp lên, hoặc export PACK_URL=...; xem RUNBOOK.md)"; exit 1; }
+python3 scripts/vifood54/captions/vast/place_pack.py "$PACK"
 python3 - <<'PY'
 import importlib, subprocess, sys
 need = []

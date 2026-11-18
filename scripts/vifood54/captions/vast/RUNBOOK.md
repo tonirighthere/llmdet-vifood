@@ -56,6 +56,9 @@ scp -P <PORT> caption_pack.tar root@<IP>:/workspace/
 scp -P <PORT> scripts/vifood54/captions/vast/setup.sh root@<IP>:/workspace/
 ssh -p <PORT> root@<IP>
 ```
+Hoặc, nếu gói đã nằm trên Google Drive (chia sẻ "bất kỳ ai có link"): bỏ lệnh `scp caption_pack.tar`, chỉ chép `setup.sh`,
+rồi trên máy thuê `export PACK_URL="<link Drive>"` trước khi chạy `setup.sh` — máy thuê tự tải gói.
+
 Trên máy thuê (nên chạy trong `tmux` để mất kết nối không dừng việc):
 ```bash
 tmux new -s cap
