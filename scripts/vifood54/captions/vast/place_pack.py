@@ -43,6 +43,11 @@ def extract(archive: str, dest: str) -> None:
         sys.exit(f'!! {archive} không phải zip/tar (link Drive sai hoặc tải về trang HTML?)')
 
 
+def rank(path: str) -> tuple[int, int]:
+    """Ưu tiên file nằm trong thư mục annotations_en/ (gói có thể chứa cả annotations/ tiếng Việt), rồi đường dẫn ngắn."""
+    return (0 if 'annotations_en' in path.replace('\\', '/').split('/') else 1, len(path))
+
+
 def index_tree(top: str) -> tuple[dict[str, list[str]], dict[str, str]]:
     by_base: dict[str, list[str]] = collections.defaultdict(list)
     named: dict[str, str] = {}
@@ -50,7 +55,7 @@ def index_tree(top: str) -> tuple[dict[str, list[str]], dict[str, str]]:
         for f in files:
             p = os.path.join(d, f)
             by_base[f].append(p)
-            if f in REQUIRED + OPTIONAL and (f not in named or len(p) < len(named[f])):
+            if f in REQUIRED + OPTIONAL and (f not in named or rank(p) < rank(named[f])):
                 named[f] = p
     return by_base, named
 
