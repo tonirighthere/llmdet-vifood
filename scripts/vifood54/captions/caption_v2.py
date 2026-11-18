@@ -441,7 +441,8 @@ def compose_row(row: dict, desc: dict, ver: Optional[dict], classes: list[dict],
         n_kept += len(kept)
         return kept
 
-    per_dish = 5 if len(groups) <= 3 else 3  # ảnh nhiều món: bớt chi tiết mỗi món để không quá dài
+    # ít món -> nhiều chi tiết mỗi món (caption ~100-140 từ như paper); nhiều món -> ít hơn. Quá 140 từ thì tự bớt (bên dưới)
+    per_dish = {1: 10, 2: 8, 3: 6}.get(len(groups), 4 if len(groups) <= 5 else 3)
     blocks: list[tuple[str, list[str], list[str], str, str]] = []  # (câu giới thiệu, chi tiết, cách bày, đại từ, động từ)
     for g in groups:
         c = classes[g.label]
