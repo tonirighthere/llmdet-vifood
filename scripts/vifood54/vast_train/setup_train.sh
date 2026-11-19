@@ -45,10 +45,20 @@ log "4/7 mmcv 2.2.0 (build có CUDA ops cho đúng GPU này, ~5-15 phút)"
 if python -c "from mmcv.ops import MultiScaleDeformableAttention" 2>/dev/null; then
   echo "mmcv đã có"
 else
+  # Không có wheel mmcv cho torch 2.10 -> build từ source. Sửa chuẩn C++14 -> C++17 (torch >= 2.1 bắt buộc C++17).
   ARCH=$(python -c "import torch; m, n = torch.cuda.get_device_capability(); print(f'{m}.{n}')")
+  SRC=/workspace/mmcv_src
+  rm -rf "$SRC" && mkdir -p "$SRC"
+  URL=$(python -c "import json, urllib.request as u; d = json.load(u.urlopen('https://pypi.org/pypi/mmcv/2.2.0/json')); print([x['url'] for x in d['urls'] if x['packagetype'] == 'sdist'][0])")
+  curl -sSL "$URL" -o "$SRC/mmcv-2.2.0.tar.gz"   # sdist; KHÔNG dùng pip download (setup.py cần torch, môi trường cô lập không có)
+  tar -xzf "$SRC/mmcv-2.2.0.tar.gz" -C "$SRC"
+  cd "$SRC"/mmcv-2.2.0
+  sed -i 's/c++14/c++17/g' setup.py
+  echo "  setup.py: $(grep -c 'c++17' setup.py) chỗ C++17, $(grep -c 'c++14' setup.py) chỗ C++14 | arch $ARCH | $(nproc) CPU"
   MMCV_WITH_OPS=1 FORCE_CUDA=1 TORCH_CUDA_ARCH_LIST="$ARCH" MAX_JOBS=$(nproc) \
-    pip install --no-build-isolation --no-binary mmcv "mmcv==2.2.0" > /workspace/mmcv_build.log 2>&1 \
-    || { echo "!! build mmcv lỗi -> tail /workspace/mmcv_build.log (gửi Claude)"; tail -30 /workspace/mmcv_build.log; exit 1; }
+    pip install -v --no-build-isolation . > /workspace/mmcv_build.log 2>&1 \
+    || { echo "!! build mmcv lỗi -> gửi Claude 40 dòng cuối:"; grep -nE "error|Error" /workspace/mmcv_build.log | tail -20; tail -20 /workspace/mmcv_build.log; exit 1; }
+  cd "$ROOT"
 fi
 python - <<'PY'
 import mmcv, torch
