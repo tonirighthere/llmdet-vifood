@@ -125,7 +125,7 @@ def main():
         linter = CaptionLinter(tok, names, 160)  # lint với đủ 54 tên: caption không được nhắc lớp novel
         builder = CaptionBuilder({c['name']: c['visual'] for c in classes}, linter.n_tokens, 160)
     stats = collections.defaultdict(list)
-    stats.update({'variants': 0, 'failed': 0, 'images_without_variant': 0})
+    stats.update({'variants': 0, 'failed': 0, 'images_without_variant': 0, 'images_vlm': 0})
     failures = []
     vg = {}
     for r in train:

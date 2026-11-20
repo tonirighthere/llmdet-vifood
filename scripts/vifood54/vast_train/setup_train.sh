@@ -49,13 +49,14 @@ else
   ARCH=$(python -c "import torch; m, n = torch.cuda.get_device_capability(); print(f'{m}.{n}')")
   SRC=/workspace/mmcv_src
   rm -rf "$SRC" && mkdir -p "$SRC"
+  pip install -q "setuptools<70"   # setup.py của mmcv 2.2.0 cần pkg_resources (setuptools mới đã bỏ)
   URL=$(python -c "import json, urllib.request as u; d = json.load(u.urlopen('https://pypi.org/pypi/mmcv/2.2.0/json')); print([x['url'] for x in d['urls'] if x['packagetype'] == 'sdist'][0])")
   curl -sSL "$URL" -o "$SRC/mmcv-2.2.0.tar.gz"   # sdist; KHÔNG dùng pip download (setup.py cần torch, môi trường cô lập không có)
   tar -xzf "$SRC/mmcv-2.2.0.tar.gz" -C "$SRC"
   cd "$SRC"/mmcv-2.2.0
   sed -i 's/c++14/c++17/g' setup.py
-  echo "  setup.py: $(grep -c 'c++17' setup.py) chỗ C++17, $(grep -c 'c++14' setup.py) chỗ C++14 | arch $ARCH | $(nproc) CPU"
-  MMCV_WITH_OPS=1 FORCE_CUDA=1 TORCH_CUDA_ARCH_LIST="$ARCH" MAX_JOBS=$(nproc) \
+  echo "  setup.py: $(grep -c 'c++17' setup.py) chỗ C++17, $(grep -c 'c++14' setup.py) chỗ C++14 | arch $ARCH | $(nproc) CPU, build 16 tiến trình (nhiều hơn dễ hết RAM)"
+  MMCV_WITH_OPS=1 FORCE_CUDA=1 TORCH_CUDA_ARCH_LIST="$ARCH" MAX_JOBS=$(( $(nproc) < 16 ? $(nproc) : 16 )) \
     pip install -v --no-build-isolation . > /workspace/mmcv_build.log 2>&1 \
     || { echo "!! build mmcv lỗi -> gửi Claude 40 dòng cuối:"; grep -nE "error|Error" /workspace/mmcv_build.log | tail -20; tail -20 /workspace/mmcv_build.log; exit 1; }
   cd "$ROOT"
@@ -80,6 +81,8 @@ for z in "${!ZIPS[@]}"; do
   echo ok > "$DL/$z.done"
   echo "  giải nén xong $z"
 done
+# config LLaVA-OV trỏ tới vision tower SigLIP (không có trong pretrained.zip) -> tải từ Hugging Face (~3.5 GB)
+[ -f huggingface/siglip-so400m-patch14-384/model.safetensors ] || python -c "from huggingface_hub import snapshot_download; snapshot_download('google/siglip-so400m-patch14-384', local_dir='huggingface/siglip-so400m-patch14-384')"
 python scripts/vifood54/vast_train/check_train_data.py --stage data --load-ckpt
 
 log "6/7 caption v2 -> dữ liệu train (B5b: _lmm_v2; OV-W: annotations_ov_en/*_lmm)"

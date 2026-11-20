@@ -31,6 +31,7 @@ BASE_FILES: list[str] = [
     'huggingface/my_llava-onevision-qwen2-0.5b-ov-2/config.json',
     'huggingface/my_llava-onevision-qwen2-0.5b-ov-2/model.safetensors',
     'huggingface/my_llava-onevision-qwen2-0.5b-ov-2/mm_projector2.bin',
+    'huggingface/siglip-so400m-patch14-384/model.safetensors',   # vision tower mà config LLaVA-OV tham chiếu
     'huggingface/mm_grounding_dino/grounding_dino_swin-t_pretrain_obj365_goldg_grit9m_v3det_20231204_095047-b448804b.pth',
     'grounding_data/vifood54/captions_v2/full_Qwen3_VL_32B/translated.jsonl',
 ]
